@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fischtrainer</title>
+  <meta name="description" content="Lernkarten für die Fischereiprüfung in Sachsen">
+  <meta name="theme-color" content="#0b4f47">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <noscript>Der Fischtrainer braucht JavaScript.</noscript>
+
+  <main class="seite" id="ansicht-start" data-ansicht="start" hidden>
+    <h1>Fischtrainer</h1>
+    <section class="faellig" aria-live="polite">
+      <p class="grosszahl" id="faellig-zahl">0</p>
+      <p id="faellig-text">Karten heute fällig</p>
+      <p class="tag-fertig" id="tag-fertig" hidden></p>
+    </section>
+
+    <section id="bilder-hinweis" class="hinweisbox" hidden>
+      <h2>Noch keine Bilder</h2>
+      <p>Wähle deine Datei <code>fischbilder.zip</code> aus. Die Bilder bleiben nur auf diesem Gerät.</p>
+      <button type="button" class="knopf haupt" id="bilder-start">Bilder importieren</button>
+      <input type="file" id="bilder-datei-start" accept=".zip,application/zip" hidden>
+    </section>
+    <p id="bilder-meldung-start" class="meldung" role="status" hidden></p>
+
+    <section>
+      <h2>Karten je Fach</h2>
+      <ol class="faecher">
+        <li><span class="fach-name">Fach 1</span><span class="fach-zahl" id="fach-1">0</span></li>
+        <li><span class="fach-name">Fach 2</span><span class="fach-zahl" id="fach-2">0</span></li>
+        <li><span class="fach-name">Fach 3</span><span class="fach-zahl" id="fach-3">0</span></li>
+        <li><span class="fach-name">Fach 4</span><span class="fach-zahl" id="fach-4">0</span></li>
+        <li><span class="fach-name">Fach 5</span><span class="fach-zahl" id="fach-5">0</span></li>
+      </ol>
+    </section>
+
+    <div class="unten">
+      <button type="button" class="knopf haupt" id="lernen">Lernen starten</button>
+      <button type="button" class="knopf leise" id="oeffne-einstellungen">Einstellungen</button>
+    </div>
+  </main>
+
+  <main class="karte" id="ansicht-karte" data-ansicht="karte" hidden>
+    <div class="karte-bildflaeche">
+      <img id="karte-bild" alt="" hidden>
+      <div id="karte-platzhalter" class="platzhalter" hidden>Kein Bild vorhanden</div>
+    </div>
+    <div class="karte-loesung" id="karte-loesung" hidden>
+      <h1 id="karte-name"></h1>
+      <dl>
+        <dt>Mindestmaß</dt>
+        <dd id="karte-mass"></dd>
+        <dt>Schonzeit</dt>
+        <dd id="karte-schonzeit"></dd>
+        <div id="karte-hinweis-zeile" hidden>
+          <dt>Hinweis</dt>
+          <dd id="karte-hinweis"></dd>
+        </div>
+      </dl>
+    </div>
+    <div class="karte-knoepfe">
+      <button type="button" class="knopf haupt" id="aufdecken">Aufdecken<kbd>Leertaste</kbd></button>
+      <div class="bewerten" id="bewerten" hidden>
+        <button type="button" class="knopf gewusst" id="gewusst">Gewusst<kbd>1</kbd></button>
+        <button type="button" class="knopf nicht-gewusst" id="nicht-gewusst">Nicht gewusst<kbd>2</kbd></button>
+      </div>
+    </div>
+  </main>
+
+  <main class="seite mitte" id="ansicht-fertig" data-ansicht="fertig" hidden>
+    <h1>Geschafft!</h1>
+    <p class="gross">Alle Karten für heute sind erledigt.</p>
+    <div class="unten">
+      <button type="button" class="knopf haupt" id="zur-start-fertig">Zur Startseite</button>
+    </div>
+  </main>
+
+  <main class="seite" id="ansicht-einstellungen" data-ansicht="einstellungen" hidden>
+    <button type="button" class="knopf leise zurueck" id="zur-start">Zurück</button>
+    <h1>Einstellungen</h1>
+
+    <section>
+      <h2>Bilder</h2>
+      <p id="bilder-anzahl"></p>
+      <p id="bilder-fehlend" class="klein"></p>
+      <button type="button" class="knopf leise" id="bilder-einstellungen">Bilder importieren oder ersetzen</button>
+      <input type="file" id="bilder-datei" accept=".zip,application/zip" hidden>
+      <p id="bilder-meldung" class="meldung" role="status" hidden></p>
+      <p id="speicher-status" class="klein"></p>
+    </section>
+
+    <section>
+      <h2>Fortschritt</h2>
+      <div class="knopfreihe">
+        <button type="button" class="knopf leise" id="export">Exportieren</button>
+        <button type="button" class="knopf leise" id="import">Importieren</button>
+      </div>
+      <input type="file" id="import-datei" accept=".json,application/json" hidden>
+      <button type="button" class="knopf gefahr" id="reset">Fortschritt zurücksetzen</button>
+      <p id="fortschritt-meldung" class="meldung" role="status" hidden></p>
+    </section>
+
+    <section>
+      <h2>Stand und Quellen der Daten</h2>
+      <ul class="quellen" id="quellen-liste"></ul>
+      <p class="klein">Artenauswahl nach dem
+        <a href="https://www.fischerei.sachsen.de/fischereischein-lehrgang-pruefung-3995.html" target="_blank" rel="noopener noreferrer">offiziellen Fragenkatalog</a>,
+        Stand 06/2025. Arten ohne Eintrag in der Anlage der Verordnung haben kein Mindestmaß und keine Schonzeit.</p>
+      <p class="klein">Der Betreiber eines Gewässers kann strengere Regeln festlegen. Vor dem Angeln gilt immer die aktuelle Gewässerordnung.</p>
+      <p class="klein" id="ungeprueft"></p>
+    </section>
+
+    <section>
+      <h2>Bildnachweise</h2>
+      <p class="klein">Diese Bilder stammen von Wikimedia Commons und wurden zugeschnitten und verkleinert.</p>
+      <ul class="quellen" id="nachweise-liste"></ul>
+    </section>
+
+    <p class="klein" id="version"></p>
+  </main>
+
+  <main class="seite mitte" id="ansicht-fehler" data-ansicht="fehler" hidden>
+    <h1>Fischtrainer</h1>
+    <p id="start-fehler" class="meldung fehler" role="alert"></p>
+  </main>
+
+  <dialog id="reset-dialog">
+    <form method="dialog">
+      <h2>Fortschritt wirklich zurücksetzen?</h2>
+      <p>Alle Karten starten dann wieder in Fach 1. Die Bilder bleiben erhalten.</p>
+      <div class="knopfreihe">
+        <button class="knopf leise" value="nein" autofocus>Abbrechen</button>
+        <button class="knopf gefahr" value="ja" id="reset-ja">Zurücksetzen</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="import-dialog">
+    <form method="dialog">
+      <h2>Fortschritt ersetzen?</h2>
+      <p>Der importierte Fortschritt ersetzt den Fortschritt auf diesem Gerät.</p>
+      <div class="knopfreihe">
+        <button class="knopf leise" value="nein" autofocus>Abbrechen</button>
+        <button class="knopf haupt" value="ja" id="import-ja">Ersetzen</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

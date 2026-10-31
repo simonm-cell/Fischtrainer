@@ -1,0 +1,200 @@
+:root {
+  --grund: #f4f6f2;
+  --flaeche: #ffffff;
+  --text: #13201c;
+  --text-leise: #46544f;
+  --linie: #c5ceca;
+  --haupt: #0b4f47;
+  --haupt-text: #ffffff;
+  --gewusst: #14663f;
+  --nicht-gewusst: #8f2f1a;
+  --gefahr: #8f1f1a;
+  --erfolg-grund: #e1f1e7;
+  --fehler-grund: #f9e3df;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--text);
+  font: 18px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1 { margin: 0 0 12px; font-size: 1.75rem; line-height: 1.2; }
+h2 { margin: 0 0 10px; font-size: 1.15rem; }
+p { margin: 0 0 10px; }
+a { color: var(--haupt); overflow-wrap: anywhere; }
+code { font-size: .95em; overflow-wrap: anywhere; }
+
+.seite {
+  width: 100%;
+  max-width: 640px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.seite section {
+  background: var(--flaeche);
+  border: 1px solid var(--linie);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.mitte { justify-content: center; }
+.gross { font-size: 1.25rem; }
+.klein { font-size: .9rem; color: var(--text-leise); }
+.klein:empty { display: none; }
+.unten { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+
+.faellig { text-align: center; }
+.faellig p { margin: 0; }
+.grosszahl { font-size: 4rem; font-weight: 700; line-height: 1.1; color: var(--haupt); }
+.tag-fertig { margin-top: 8px !important; font-weight: 600; }
+.hinweisbox { border-color: var(--haupt) !important; border-width: 2px !important; }
+
+.faecher {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.faecher li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 2px;
+  background: var(--grund);
+  border-radius: 10px;
+}
+.fach-name { font-size: .8rem; color: var(--text-leise); }
+.fach-zahl { font-size: 1.4rem; font-weight: 700; }
+
+.knopf {
+  appearance: none;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.knopf:focus-visible, a:focus-visible { outline: 3px solid #1565c0; outline-offset: 2px; }
+.knopf:disabled { background: #dfe4e1; color: #5d6965; cursor: not-allowed; }
+.haupt { background: var(--haupt); color: var(--haupt-text); }
+.leise { background: var(--flaeche); color: var(--text); border-color: var(--text-leise); min-height: 54px; }
+.gefahr { background: var(--flaeche); color: var(--gefahr); border-color: var(--gefahr); min-height: 54px; }
+.gewusst { background: var(--gewusst); color: #fff; }
+.nicht-gewusst { background: var(--nicht-gewusst); color: #fff; }
+.zurueck { align-self: flex-start; width: auto; min-width: 110px; }
+.knopfreihe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+kbd { display: none; }
+
+.meldung { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--grund); }
+.meldung.erfolg { background: var(--erfolg-grund); }
+.meldung.fehler { background: var(--fehler-grund); color: #6d1810; font-weight: 600; }
+
+.quellen { margin: 0 0 10px; padding: 0; list-style: none; font-size: .9rem; }
+.quellen li { padding: 8px 0; border-bottom: 1px solid var(--linie); }
+.quellen li:last-child { border-bottom: 0; }
+
+/* Lernkarte: Die Knöpfe bleiben immer im Daumenbereich unten. */
+.karte {
+  width: 100%;
+  height: 100dvh;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+}
+.karte-bildflaeche {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.ist-aufgedeckt .karte-bildflaeche { flex: 0 1 36%; padding-bottom: 6px; }
+#karte-bild {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+.platzhalter {
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-leise);
+  border: 2px dashed var(--linie);
+  border-radius: var(--radius);
+}
+.karte-loesung {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 16px 10px;
+}
+.karte-loesung h1 { margin-bottom: 8px; }
+.karte-loesung dl { margin: 0; }
+.karte-loesung dt { font-size: .85rem; color: var(--text-leise); margin-top: 8px; }
+.karte-loesung dd { margin: 0; font-weight: 600; font-size: 1.15rem; }
+#karte-hinweis { font-weight: 400; font-size: 1rem; }
+.karte-knoepfe { padding: 10px 16px max(16px, env(safe-area-inset-bottom)); }
+.bewerten { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bewerten .knopf { min-height: 72px; }
+#aufdecken { min-height: 72px; }
+
+dialog {
+  width: min(92vw, 460px);
+  border: 0;
+  border-radius: var(--radius);
+  padding: 20px;
+  color: var(--text);
+}
+dialog::backdrop { background: rgba(10, 20, 18, .55); }
+dialog .knopfreihe { margin: 16px 0 0; }
+
+/* Tastaturhinweise nur am Computer */
+@media (hover: hover) and (pointer: fine) {
+  kbd {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 1px 7px;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    font: 500 .75rem system-ui, sans-serif;
+    opacity: .85;
+  }
+}
+
+/* Am Computer stehen Bild und Lösung nebeneinander. */
+@media (min-width: 800px) and (min-height: 500px) {
+  .karte { padding: 16px; }
+  .ist-aufgedeckt.karte { display: grid; grid-template-columns: 3fr 2fr; grid-template-rows: 1fr auto; gap: 8px 20px; }
+  .ist-aufgedeckt .karte-bildflaeche { grid-column: 1; grid-row: 1; min-height: 0; padding: 12px; }
+  .ist-aufgedeckt .karte-loesung { grid-column: 2; grid-row: 1; align-self: center; max-height: 100%; }
+  .ist-aufgedeckt .karte-knoepfe { grid-column: 1 / -1; grid-row: 2; }
+}

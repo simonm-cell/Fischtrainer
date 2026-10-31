@@ -1,0 +1,22 @@
+# Gekaufte Bilder und Kopien davon dürfen nie ins Repository.
+Fischkarten/
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.PNG
+*.gif
+*.webp
+*.heic
+*.avif
+*.bmp
+*.tif
+*.tiff
+*.zip
+
+# Das App-Icon ist die einzige erlaubte Ausnahme.
+!icons/
+!icons/icon-192.png
+!icons/icon-512.png
+!icons/icon-maskable-512.png
