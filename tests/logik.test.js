@@ -1,7 +1,7 @@
 import {
   tagesmenge, istFaellig, differenzTage, lokalerTag, neuerZustand, abgleichen, tagesplan,
   tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen, migrieren, gruppeAnwenden,
-  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText,
+  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole,
 } from '../js/logik.js';
 
 const tests = [];
@@ -257,6 +257,30 @@ test('Teilweise ganzjährig geschonte Art behält ihr Mindestmaß', () => {
 test('Der Kurzname ist der erste von mehreren Namen', () => {
   gleich(kurzname('Quappe | Rutte | Trüsche | Aalrutte'), 'Quappe');
   gleich(kurzname('Barbe'), 'Barbe');
+});
+
+// Symbole unter dem Namen
+const namenVon = (mindestmass_cm, schonzeit, invasiv = false) => symbole({ mindestmass_cm, schonzeit, invasiv }).namen;
+test('Symbole: invasive Art', () => {
+  gleich(namenVon(null, null, true), ['angel', 'nicht-zuruecksetzen']);
+});
+test('Symbole: nicht geschützt', () => {
+  gleich(namenVon(null, null), ['angel']);
+});
+test('Symbole: nur Mindestmaß', () => {
+  gleich(namenVon(25, null), ['angel', 'mass']);
+});
+test('Symbole: nur Schonzeit', () => {
+  gleich(namenVon(null, '1. Februar bis 31. Mai'), ['angel', 'kalender']);
+});
+test('Symbole: Mindestmaß und Schonzeit', () => {
+  gleich(namenVon(50, '1. Februar bis 31. Mai'), ['angel', 'mass', 'kalender']);
+});
+test('Symbole: ganzjährig geschont', () => {
+  gleich(namenVon(null, 'ganzjährig'), ['angel-gesperrt']);
+});
+test('Symbole: teilweise ganzjährig geschonte Art zählt nach Maß und Schonzeit', () => {
+  gleich(namenVon(40, 'in der Elbe 1. Januar bis 15. Juni, sonst ganzjährig'), ['angel', 'mass', 'kalender']);
 });
 
 // Modus für Verwechslungen

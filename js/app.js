@@ -1,6 +1,6 @@
 import {
   abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, migrieren,
-  mindestmassText, neuerZustand, offeneKarten, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
+  mindestmassText, neuerZustand, offeneKarten, symbole, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
 } from './logik.js';
 import {
   bildIdsLaden, bildLaden, bilderSpeichern, dauerhaftAnfordern, istDauerhaft, vergleichLaden, vergleichSpeichern,
@@ -8,7 +8,7 @@ import {
 } from './speicher.js';
 import { zipLesen } from './zip.js';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const $ = (id) => document.getElementById(id);
 
 let fische = [];
@@ -42,6 +42,15 @@ function fischePruefen(liste) {
     }
     if (f.ordnung !== undefined && f.ordnung !== null && typeof f.ordnung !== 'string') {
       throw new Error(`Die Ordnung von „${f.name}“ muss ein Text oder null sein.`);
+    }
+    if (f.lebensraum !== undefined && f.lebensraum !== null && typeof f.lebensraum !== 'string') {
+      throw new Error(`Der Lebensraum von „${f.name}“ muss ein Text oder null sein.`);
+    }
+    if (f.herkunft !== undefined && f.herkunft !== null && typeof f.herkunft !== 'string') {
+      throw new Error(`Die Herkunft von „${f.name}“ muss ein Text oder null sein.`);
+    }
+    if (f.invasiv !== undefined && typeof f.invasiv !== 'boolean') {
+      throw new Error(`Das Feld invasiv von „${f.name}“ muss true oder false sein.`);
     }
   }
   return liste;
@@ -101,6 +110,23 @@ function startZeigen() {
 
 /* Lernkarte */
 
+function symboleZeigen(fisch) {
+  const { namen, bedeutung } = symbole(fisch);
+  const leiste = $('karte-symbole');
+  const ns = 'http://www.w3.org/2000/svg';
+  leiste.replaceChildren(...namen.map((name) => {
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const use = document.createElementNS(ns, 'use');
+    use.setAttribute('href', `#symbol-${name}`);
+    svg.append(use);
+    return svg;
+  }));
+  leiste.dataset.symbole = namen.join(' ');
+  leiste.setAttribute('aria-label', bedeutung);
+  leiste.title = bedeutung;
+}
+
 function bildFreigeben() {
   if (bildUrl) URL.revokeObjectURL(bildUrl);
   bildUrl = null;
@@ -134,7 +160,11 @@ async function karteZeigen() {
   // Die Lösung kommt erst beim Aufdecken in die Seite.
   $('karte-loesung').hidden = true;
   $('karte-name').textContent = '';
+  $('karte-symbole').replaceChildren();
   $('karte-ordnung').textContent = '';
+  $('karte-lebensraum').textContent = '';
+  $('karte-herkunft').textContent = '';
+  $('karte-herkunft-zeile').hidden = true;
   $('karte-mass').textContent = '';
   $('karte-schonzeit').textContent = '';
   $('karte-hinweis').textContent = '';
@@ -153,7 +183,11 @@ function aufdecken() {
   if (!fisch) return;
   aufgedeckt = true;
   $('karte-name').textContent = fisch.name;
+  symboleZeigen(fisch);
   $('karte-ordnung').textContent = fisch.ordnung || 'nicht angegeben';
+  $('karte-lebensraum').textContent = fisch.lebensraum || 'nicht angegeben';
+  $('karte-herkunft').textContent = fisch.herkunft || '';
+  $('karte-herkunft-zeile').hidden = !fisch.herkunft;
   $('karte-mass').textContent = mindestmassText(fisch);
   $('karte-schonzeit').textContent = fisch.schonzeit ?? 'keine Schonzeit';
   $('karte-hinweis').textContent = fisch.hinweis || '';

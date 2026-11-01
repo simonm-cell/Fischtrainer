@@ -182,6 +182,18 @@ export function mindestmassText(fisch) {
   return fisch.schonzeit === 'ganzjährig' ? '-' : 'kein Mindestmaß';
 }
 
+// Welche Symbole unter dem Namen stehen und was sie zusammen bedeuten.
+export function symbole(fisch) {
+  const mass = fisch.mindestmass_cm !== null;
+  const schonzeit = fisch.schonzeit !== null;
+  if (fisch.invasiv) return { namen: ['angel', 'nicht-zuruecksetzen'], bedeutung: 'Invasive Art, nicht zurücksetzen' };
+  if (!mass && fisch.schonzeit === 'ganzjährig') return { namen: ['angel-gesperrt'], bedeutung: 'Ganzjährig geschont' };
+  if (mass && schonzeit) return { namen: ['angel', 'mass', 'kalender'], bedeutung: 'Mindestmaß und Schonzeit' };
+  if (mass) return { namen: ['angel', 'mass'], bedeutung: 'Mindestmaß' };
+  if (schonzeit) return { namen: ['angel', 'kalender'], bedeutung: 'Schonzeit' };
+  return { namen: ['angel'], bedeutung: 'Nicht geschützt' };
+}
+
 // Der Modus für Verwechslungen ist vom Karteikasten unabhängig und ändert keine Fächer.
 export const vergleichStarten = (zustand, paarIds, zufall) => ({
   ...zustand,

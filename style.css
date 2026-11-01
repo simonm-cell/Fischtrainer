@@ -157,7 +157,18 @@ kbd { display: none; }
   overflow-y: auto;
   padding: 2px 16px 10px;
 }
-.karte-loesung h1 { margin-bottom: 8px; font-size: 1.4rem; }
+.karte-loesung h1 { margin-bottom: 6px; font-size: 1.4rem; }
+.symbol-vorrat { position: absolute; width: 0; height: 0; overflow: hidden; }
+.karte-symbole { display: flex; gap: 12px; margin-bottom: 6px; color: var(--haupt); }
+.karte-symbole svg {
+  width: 32px;
+  height: 32px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .karte-loesung dl { margin: 0; }
 .karte-loesung dt { font-size: .85rem; color: var(--text-leise); margin-top: 8px; }
 .karte-loesung dd { margin: 0; font-weight: 600; font-size: 1.15rem; }

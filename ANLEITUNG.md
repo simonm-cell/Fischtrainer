@@ -56,6 +56,9 @@ Die Daten stehen in der Datei `fische.json`. Öffne sie auf GitHub oder in einem
 | `id` | Eindeutiger Schlüssel. **Nicht ändern**, weil Fortschritt und Bild daran hängen. |
 | `name` | Überschrift der Karte, mehrere Namen mit ` \| ` getrennt |
 | `ordnung` | Ordnung als Text oder `null` |
+| `lebensraum` | `Süßwasser`, `Salzwasser` oder `Salz- und Süßwasser` |
+| `herkunft` | Ursprüngliche Herkunft gebietsfremder Arten als Text, sonst `null` |
+| `invasiv` | `true` bei invasiven Arten, sonst `false`. Bestimmt zusammen mit Mindestmaß und Schonzeit die Symbole unter dem Namen. |
 | `mindestmass_cm` | Zahl ohne Anführungszeichen, zum Beispiel `50`, oder `null`. Ohne Wert zeigt die Karte „kein Mindestmaß“, bei ganzjährig geschützten Arten „-“ |
 | `schonzeit` | Text in Anführungszeichen oder `null` für „keine Schonzeit“ |
 | `hinweis` | Text oder `""` für keinen Hinweis |

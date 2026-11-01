@@ -12,6 +12,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <svg class="symbol-vorrat" aria-hidden="true">
+    <symbol id="symbol-angel" viewBox="0 0 24 24"><path d="M2.8 21.4C7.5 14.5 13 8 20.6 3"/><path d="M20.6 3v9.2"/><path d="M20.6 12.2v2.3a2.3 2.3 0 1 1-4.6 0"/><circle cx="7.4" cy="17.6" r="2.1"/><path d="M7.4 17.6 5.4 15.8"/></symbol>
+    <symbol id="symbol-angel-gesperrt" viewBox="0 0 24 24"><path d="M2.8 21.4C7.5 14.5 13 8 20.6 3"/><path d="M20.6 3v9.2"/><path d="M20.6 12.2v2.3a2.3 2.3 0 1 1-4.6 0"/><circle cx="7.4" cy="17.6" r="2.1"/><path d="M7.4 17.6 5.4 15.8"/><path d="M3 3 21 21" stroke="var(--grund)" stroke-width="4.2"/><path d="M3 3 21 21" stroke="#b3261e" stroke-width="2.3"/></symbol>
+    <symbol id="symbol-mass" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8.5" rx="1.4"/><path d="M6 8v3.2M10 8v4.6M14 8v3.2M18 8v4.6"/></symbol>
+    <symbol id="symbol-kalender" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" stroke-width="2.4"/></symbol>
+    <symbol id="symbol-nicht-zuruecksetzen" viewBox="0 0 24 24"><g transform="rotate(-48 12 9)" fill="currentColor" stroke-width="1"><path d="M1.5 9C5.2 3.8 11.2 3.8 15.2 9 11.2 14.2 5.2 14.2 1.5 9Z"/><path d="M14.6 9l6-4.3v8.6Z"/><circle cx="5.6" cy="7.8" r="1" fill="var(--grund)" stroke="none"/></g><path d="M1.8 21.6c2-1.5 3.4-1.5 5.1 0s3.2 1.5 5.1 0 3.4-1.5 5.1 0 3.2 1.5 5.1 0"/><path d="M3.5 2.5 19 18" stroke="var(--grund)" stroke-width="3.8"/><path d="M3.5 2.5 19 18" stroke="#b3261e" stroke-width="2.3"/></symbol>
+  </svg>
+
   <noscript>Der Fischtrainer braucht JavaScript.</noscript>
 
   <main class="seite" id="ansicht-start" data-ansicht="start" hidden>
@@ -56,9 +64,16 @@
     </div>
     <div class="karte-loesung" id="karte-loesung" hidden>
       <h1 id="karte-name"></h1>
+      <div class="karte-symbole" id="karte-symbole" role="img"></div>
       <dl>
         <dt>Ordnung</dt>
         <dd id="karte-ordnung"></dd>
+        <dt>Lebensraum</dt>
+        <dd id="karte-lebensraum"></dd>
+        <div id="karte-herkunft-zeile" hidden>
+          <dt>Ursprüngliche Herkunft</dt>
+          <dd id="karte-herkunft"></dd>
+        </div>
         <dt>Mindestmaß</dt>
         <dd id="karte-mass"></dd>
         <dt>Schonzeit</dt>
@@ -147,6 +162,8 @@
         Stand 06/2025. Arten ohne Eintrag in der Anlage der Verordnung haben kein Mindestmaß und keine Schonzeit.</p>
       <p class="klein">Der Betreiber eines Gewässers kann strengere Regeln festlegen. Vor dem Angeln gilt immer die aktuelle Gewässerordnung.</p>
       <p class="klein">Ordnung nach den Lernkarten. Für Arten ohne Lernkarte stammt sie aus <a href="https://www.gbif.org/" target="_blank" rel="noopener noreferrer">GBIF</a>, die Muscheln stehen dort in der Ordnung Unionida. Stand 01.11.2026.</p>
+      <p class="klein">Lebensraum nach dem Symbol „Vorkommen“ der Lernkarten. Für Arten ohne Lernkarte nach <a href="https://www.gbif.org/" target="_blank" rel="noopener noreferrer">GBIF</a> und <a href="https://www.fishbase.se/" target="_blank" rel="noopener noreferrer">FishBase</a>. Der Nordseeschnäpel lebt nach dem <a href="https://www.hlnug.de/fileadmin/dokumente/naturschutz/artenschutz/steckbriefe/Fische/Steckbriefe/artensteckbrief_2006_nordseeschnaepel_coregonus_oxyrinchus.pdf" target="_blank" rel="noopener noreferrer">Artensteckbrief des HLNUG</a> an der Küste und wandert zum Laichen in die Flüsse.</p>
+      <p class="klein">Ursprüngliche Herkunft nur bei gebietsfremden Arten, nach Lernkarten, Fragenkatalog und <a href="https://www.fishbase.se/" target="_blank" rel="noopener noreferrer">FishBase</a>. Einstufung nach der <a href="https://www.landwirtschaft.sachsen.de/download/Rote_Liste_der_-Fische-_Rundmaeuler_Stand_2015.pdf" target="_blank" rel="noopener noreferrer">Roten Liste Sachsen, Stand 2015</a>.</p>
       <p class="klein" id="ungeprueft"></p>
     </section>
 
