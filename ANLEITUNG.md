@@ -56,6 +56,7 @@ Die Daten stehen in der Datei `fische.json`. Öffne sie auf GitHub oder in einem
 | `id` | Eindeutiger Schlüssel. **Nicht ändern**, weil Fortschritt und Bild daran hängen. |
 | `name` | Überschrift der Karte, mehrere Namen mit ` \| ` getrennt |
 | `ordnung` | Ordnung als Text oder `null` |
+| `gattung` | Gattung als Text, erscheint als `Ordnung \| Gattung` |
 | `lebensraum` | `Süßwasser`, `Salzwasser` oder `Salz- und Süßwasser` |
 | `herkunft` | Ursprüngliche Herkunft gebietsfremder Arten als Text, sonst `null` |
 | `invasiv` | `true` bei invasiven Arten, sonst `false`. Bestimmt zusammen mit Mindestmaß und Schonzeit die Symbole unter dem Namen. |

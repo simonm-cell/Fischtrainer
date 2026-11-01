@@ -1,6 +1,6 @@
 import {
   abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, migrieren,
-  mindestmassText, neuerZustand, offeneKarten, symbole, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
+  mindestmassText, neuerZustand, offeneKarten, symbole, systematik, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
 } from './logik.js';
 import {
   bildIdsLaden, bildLaden, bilderSpeichern, dauerhaftAnfordern, istDauerhaft, vergleichLaden, vergleichSpeichern,
@@ -8,7 +8,7 @@ import {
 } from './speicher.js';
 import { zipLesen } from './zip.js';
 
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const $ = (id) => document.getElementById(id);
 
 let fische = [];
@@ -42,6 +42,9 @@ function fischePruefen(liste) {
     }
     if (f.ordnung !== undefined && f.ordnung !== null && typeof f.ordnung !== 'string') {
       throw new Error(`Die Ordnung von „${f.name}“ muss ein Text oder null sein.`);
+    }
+    if (f.gattung !== undefined && f.gattung !== null && typeof f.gattung !== 'string') {
+      throw new Error(`Die Gattung von „${f.name}“ muss ein Text oder null sein.`);
     }
     if (f.lebensraum !== undefined && f.lebensraum !== null && typeof f.lebensraum !== 'string') {
       throw new Error(`Der Lebensraum von „${f.name}“ muss ein Text oder null sein.`);
@@ -162,6 +165,7 @@ async function karteZeigen() {
   $('karte-name').textContent = '';
   $('karte-symbole').replaceChildren();
   $('karte-ordnung').textContent = '';
+  $('karte-gruppe').textContent = '';
   $('karte-lebensraum').textContent = '';
   $('karte-herkunft').textContent = '';
   $('karte-herkunft-zeile').hidden = true;
@@ -184,7 +188,9 @@ function aufdecken() {
   aufgedeckt = true;
   $('karte-name').textContent = fisch.name;
   symboleZeigen(fisch);
-  $('karte-ordnung').textContent = fisch.ordnung || 'nicht angegeben';
+  const { zeile, gruppe } = systematik(fisch);
+  $('karte-ordnung').textContent = zeile;
+  $('karte-gruppe').textContent = gruppe;
   $('karte-lebensraum').textContent = fisch.lebensraum || 'nicht angegeben';
   $('karte-herkunft').textContent = fisch.herkunft || '';
   $('karte-herkunft-zeile').hidden = !fisch.herkunft;

@@ -173,6 +173,9 @@ kbd { display: none; }
 .karte-loesung dt { font-size: .85rem; color: var(--text-leise); margin-top: 8px; }
 .karte-loesung dd { margin: 0; font-weight: 600; font-size: 1.15rem; }
 #karte-hinweis { font-weight: 400; font-size: 1rem; }
+.karte-loesung dd#karte-ordnung { font-size: 1.05rem; }
+.karte-loesung dd.karte-gruppe { font-weight: 400; font-size: .9rem; color: var(--text-leise); }
+.karte-loesung dd.karte-gruppe:empty { display: none; }
 .karte-knoepfe { padding: 10px 16px max(16px, env(safe-area-inset-bottom)); }
 .bewerten { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bewerten .knopf { min-height: 72px; }

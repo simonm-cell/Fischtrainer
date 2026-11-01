@@ -1,7 +1,7 @@
 import {
   tagesmenge, istFaellig, differenzTage, lokalerTag, neuerZustand, abgleichen, tagesplan,
   tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen, migrieren, gruppeAnwenden,
-  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole,
+  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole, systematik,
 } from '../js/logik.js';
 
 const tests = [];
@@ -257,6 +257,15 @@ test('Teilweise ganzjährig geschonte Art behält ihr Mindestmaß', () => {
 test('Der Kurzname ist der erste von mehreren Namen', () => {
   gleich(kurzname('Quappe | Rutte | Trüsche | Aalrutte'), 'Quappe');
   gleich(kurzname('Barbe'), 'Barbe');
+});
+
+// Ordnung und Gattung
+test('Ordnung und Gattung stehen in einer Zeile, die Erläuterung darunter', () => {
+  gleich(systematik({ ordnung: 'Cypriniformes (karpfenartige Fische)', gattung: 'Barbus' }), { zeile: 'Cypriniformes | Barbus', gruppe: 'karpfenartige Fische' });
+});
+test('Ordnung ohne Klammer und ohne Gattung bleibt lesbar', () => {
+  gleich(systematik({ ordnung: 'Salmoniformes', gattung: null }), { zeile: 'Salmoniformes', gruppe: '' });
+  gleich(systematik({ ordnung: null, gattung: null }), { zeile: 'nicht angegeben', gruppe: '' });
 });
 
 // Symbole unter dem Namen

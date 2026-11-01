@@ -182,6 +182,16 @@ export function mindestmassText(fisch) {
   return fisch.schonzeit === 'ganzjährig' ? '-' : 'kein Mindestmaß';
 }
 
+// Trennt „Cypriniformes (karpfenartige Fische)“ in die Zeile „Ordnung | Gattung“
+// und die Erläuterung darunter.
+export function systematik(fisch) {
+  const [, ordnung = '', gruppe = ''] = (fisch.ordnung ?? '').match(/^(.*?)(?: \((.*)\))?$/) ?? [];
+  return {
+    zeile: [ordnung, fisch.gattung].filter(Boolean).join(' | ') || 'nicht angegeben',
+    gruppe,
+  };
+}
+
 // Welche Symbole unter dem Namen stehen und was sie zusammen bedeuten.
 export function symbole(fisch) {
   const mass = fisch.mindestmass_cm !== null;
