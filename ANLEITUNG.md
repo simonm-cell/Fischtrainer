@@ -13,11 +13,19 @@ Die Bilder sind nicht in der App enthalten, sondern kommen aus deiner eigenen Da
 
 1. Übertrage die Datei aufs Handy, zum Beispiel per USB-Kabel in den Ordner **Download**.
 2. Öffne die App. Beim ersten Start erscheint **Bilder importieren**. Später findest du das unter **Einstellungen**.
-3. Wähle `fischbilder.zip` aus und warte auf die Meldung „67 Bilder importiert“.
+3. Wähle `fischbilder.zip` aus und warte auf die Meldung „67 Fischbilder importiert. 12 Vergleichspaare importiert.“
 
-Die Bilder werden nur im Browser auf dem Handy gespeichert und nirgendwohin hochgeladen. Danach funktioniert die App auch ohne Internet.
+Hast du schon eine ältere `fischbilder.zip` importiert, importiere die neue Datei unter **Einstellungen → Bilder importieren oder ersetzen**. Dein Fortschritt bleibt dabei erhalten.
+
+Die Bilder und die Texte für „Verwechslungen üben“ werden nur im Browser auf dem Handy gespeichert und nirgendwohin hochgeladen. Danach funktioniert die App auch ohne Internet.
 
 **Bewahre `fischbilder.zip` als Sicherung auf.** Löschst du die App oder die Browserdaten, sind die Bilder im Browser weg und du musst sie neu importieren. Lege die Datei nicht in einen öffentlichen Ordner, und teile sie nicht.
+
+## Lernen mit Gruppen und Verwechslungen
+
+**Lerngruppe:** Aus Fach 1 fragt die App höchstens 7 Karten gleichzeitig ab. Eine neue Karte kommt erst dazu, wenn du eine davon gewusst hast. Die Zahl änderst du unter **Einstellungen → Lernen**.
+
+**Verwechslungen üben:** Die App zeigt zwei leicht verwechselbare Fische ohne Namen. Beim Aufdecken erscheinen die markierten Merkmale und Erklärungen. Nicht gewusste Paare kommen erneut, bis du alle gewusst hast. Dieser Modus ändert weder Fächer noch Tagesplan.
 
 ## Nutzung am Computer
 
@@ -46,8 +54,9 @@ Die Daten stehen in der Datei `fische.json`. Öffne sie auf GitHub oder in einem
 | Feld | Bedeutung |
 |---|---|
 | `id` | Eindeutiger Schlüssel. **Nicht ändern**, weil Fortschritt und Bild daran hängen. |
-| `name` | Name auf der Karte |
-| `mindestmass_cm` | Zahl ohne Anführungszeichen, zum Beispiel `50`, oder `null` für „kein Mindestmaß“ |
+| `name` | Überschrift der Karte, mehrere Namen mit ` \| ` getrennt |
+| `ordnung` | Ordnung als Text oder `null` |
+| `mindestmass_cm` | Zahl ohne Anführungszeichen, zum Beispiel `50`, oder `null`. Ohne Wert zeigt die Karte „kein Mindestmaß“, bei ganzjährig geschützten Arten „-“ |
 | `schonzeit` | Text in Anführungszeichen oder `null` für „keine Schonzeit“ |
 | `hinweis` | Text oder `""` für keinen Hinweis |
 | `quelle`, `stand` | Link und Stand der Quelle |

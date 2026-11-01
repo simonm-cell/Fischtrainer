@@ -3,6 +3,7 @@
 
 export const NENNER = { 1: 1, 2: 2, 3: 3, 4: 5 };
 export const ABSTAND_TAGE = { 1: 1, 2: 2, 3: 3, 4: 5 };
+export const STANDARD_GRUPPE = 7;
 
 const DATUM = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -42,10 +43,22 @@ export function mischen(liste, zufall) {
   return a;
 }
 
-export function neuerZustand(ids) {
+export function neuerZustand(ids, gruppe = STANDARD_GRUPPE) {
   const karten = {};
   for (const id of ids) karten[id] = { fach: 1, zuletzt: null };
-  return { karten, tag: null, warteschlange: [], planGroesse: 0 };
+  return { karten, tag: null, warteschlange: [], reserve: [], planGroesse: 0, gruppe, vergleich: [] };
+}
+
+const gueltigeGruppe = (n) => Number.isInteger(n) && n >= 1;
+
+// Ergänzt Felder, die ältere gespeicherte Stände noch nicht kennen.
+export function migrieren(zustand) {
+  return {
+    ...zustand,
+    reserve: zustand.reserve ?? [],
+    gruppe: gueltigeGruppe(zustand.gruppe) ? zustand.gruppe : STANDARD_GRUPPE,
+    vergleich: zustand.vergleich ?? [],
+  };
 }
 
 // Neue Fische starten in Fach 1. Der Fortschritt entfernter Fische bleibt
@@ -60,8 +73,40 @@ export function abgleichen(zustand, ids) {
     ...zustand,
     karten,
     warteschlange: zustand.warteschlange.filter((id) => aktiv.has(id)),
+    reserve: zustand.reserve.filter((id) => aktiv.has(id)),
   };
 }
+
+const aktiveFach1 = (zustand) => zustand.warteschlange.filter((id) => zustand.karten[id].fach === 1);
+
+// Holt wartende Fach-1-Karten nach, bis die Lerngruppe wieder voll ist.
+function auffuellen(zustand) {
+  const frei = zustand.gruppe - aktiveFach1(zustand).length;
+  if (frei <= 0 || zustand.reserve.length === 0) return zustand;
+  return {
+    ...zustand,
+    warteschlange: [...zustand.warteschlange, ...zustand.reserve.slice(0, frei)],
+    reserve: zustand.reserve.slice(frei),
+  };
+}
+
+// Setzt die Gruppengröße durch. Überzählige Karten warten wieder vorne in der Reserve.
+export function gruppeAnwenden(zustand) {
+  const zuViele = aktiveFach1(zustand).slice(zustand.gruppe);
+  const ueberzaehlig = new Set(zuViele);
+  return auffuellen({
+    ...zustand,
+    warteschlange: zustand.warteschlange.filter((id) => !ueberzaehlig.has(id)),
+    reserve: [...zuViele, ...zustand.reserve],
+  });
+}
+
+export function gruppeSetzen(zustand, gruppe) {
+  if (!gueltigeGruppe(gruppe)) throw new Error('Die Gruppengröße muss eine ganze Zahl ab 1 sein.');
+  return gruppeAnwenden({ ...zustand, gruppe });
+}
+
+export const offeneKarten = (zustand) => zustand.warteschlange.length + zustand.reserve.length;
 
 export function tagesplan(zustand, ids, heute, zufall) {
   const plan = [];
@@ -79,11 +124,31 @@ export function tagesplan(zustand, ids, heute, zufall) {
   return mischen(plan, zufall);
 }
 
+// Bereits begonnene Fach-1-Karten bleiben vor neuen dran, damit die Lerngruppe
+// am nächsten Tag dieselbe bleibt. Die ältesten kommen zuerst.
+function fach1Reihenfolge(ids, karten) {
+  const zuletzt = (id) => karten[id].zuletzt;
+  return [...ids].sort((a, b) => {
+    if (zuletzt(a) === zuletzt(b)) return 0;
+    if (zuletzt(a) === null) return 1;
+    if (zuletzt(b) === null) return -1;
+    return zuletzt(a) < zuletzt(b) ? -1 : 1;
+  });
+}
+
 // Rechnet den Plan nur beim ersten Öffnen eines Tages; danach bleibt er stabil.
 export function tagSicherstellen(zustand, ids, heute, zufall) {
   if (zustand.tag === heute) return zustand;
-  const warteschlange = tagesplan(zustand, ids, heute, zufall);
-  return { ...zustand, tag: heute, warteschlange, planGroesse: warteschlange.length };
+  const plan = tagesplan(zustand, ids, heute, zufall);
+  const fach1 = fach1Reihenfolge(plan.filter((id) => zustand.karten[id].fach === 1), zustand.karten);
+  const andere = plan.filter((id) => zustand.karten[id].fach !== 1);
+  return {
+    ...zustand,
+    tag: heute,
+    warteschlange: mischen([...andere, ...fach1.slice(0, zustand.gruppe)], zufall),
+    reserve: fach1.slice(zustand.gruppe),
+    planGroesse: plan.length,
+  };
 }
 
 export function bewerten(zustand, id, gewusst, heute) {
@@ -101,11 +166,32 @@ export function bewerten(zustand, id, gewusst, heute) {
   } else {
     fach = 1;
   }
-  return {
+  return auffuellen({
     ...zustand,
     karten: { ...zustand.karten, [id]: { fach, zuletzt: heute } },
     warteschlange,
-  };
+  });
+}
+
+// Mehrere Namen eines Fisches stehen mit " | " getrennt im Feld name.
+export const kurzname = (name) => name.split(' | ')[0];
+
+// Ganzjährig geschützte Arten haben kein Maß, das beim Fang eine Rolle spielt.
+export function mindestmassText(fisch) {
+  if (fisch.mindestmass_cm !== null) return `${fisch.mindestmass_cm} cm`;
+  return fisch.schonzeit === 'ganzjährig' ? '-' : 'kein Mindestmaß';
+}
+
+// Der Modus für Verwechslungen ist vom Karteikasten unabhängig und ändert keine Fächer.
+export const vergleichStarten = (zustand, paarIds, zufall) => ({
+  ...zustand,
+  vergleich: mischen(paarIds, zufall),
+});
+
+export function vergleichBewerten(zustand, id, gewusst) {
+  if (zustand.vergleich[0] !== id) throw new Error('Dieses Paar ist nicht an der Reihe.');
+  const rest = zustand.vergleich.slice(1);
+  return { ...zustand, vergleich: gewusst ? rest : [...rest, id] };
 }
 
 export function anzahlJeFach(zustand, ids) {
@@ -125,15 +211,27 @@ export function zustandPruefen(z) {
   if (!Array.isArray(z.warteschlange) || z.warteschlange.some((id) => !z.karten[id])) {
     throw new Error('Die Warteschlange in der Datei ist ungültig.');
   }
+  if (z.reserve !== undefined && (!Array.isArray(z.reserve) || z.reserve.some((id) => !z.karten[id]))) {
+    throw new Error('Die wartenden Karten in der Datei sind ungültig.');
+  }
+  if (z.gruppe !== undefined && !gueltigeGruppe(z.gruppe)) {
+    throw new Error('Die Gruppengröße in der Datei ist ungültig.');
+  }
+  if (z.vergleich !== undefined && (!Array.isArray(z.vergleich) || z.vergleich.some((id) => typeof id !== 'string'))) {
+    throw new Error('Die Verwechslungen in der Datei sind ungültig.');
+  }
   for (const karte of Object.values(z.karten)) {
     const fachOk = Number.isInteger(karte?.fach) && karte.fach >= 1 && karte.fach <= 5;
     const zuletztOk = karte?.zuletzt === null || (typeof karte?.zuletzt === 'string' && DATUM.test(karte.zuletzt));
     if (!fachOk || !zuletztOk) throw new Error('Eine Karte in der Datei ist ungültig.');
   }
-  return {
+  return migrieren({
     karten: z.karten,
     tag: z.tag,
     warteschlange: z.warteschlange,
+    reserve: z.reserve,
     planGroesse: Number.isInteger(z.planGroesse) ? z.planGroesse : z.warteschlange.length,
-  };
+    gruppe: z.gruppe,
+    vergleich: z.vergleich,
+  });
 }

@@ -2,6 +2,7 @@
 
 const DB_NAME = 'fischtrainer';
 const ZUSTAND = 'zustand';
+const VERGLEICH = 'vergleich';
 let verbindung;
 
 function oeffnen() {
@@ -39,6 +40,8 @@ async function schreiben(store, aktion) {
 
 export const zustandLaden = () => lesen('daten', (s) => s.get(ZUSTAND));
 export const zustandSpeichern = (zustand) => schreiben('daten', (s) => s.put(zustand, ZUSTAND));
+export const vergleichLaden = () => lesen('daten', (s) => s.get(VERGLEICH));
+export const vergleichSpeichern = (paare) => schreiben('daten', (s) => s.put(paare, VERGLEICH));
 export const bildLaden = (id) => lesen('bilder', (s) => s.get(id));
 export const bildIdsLaden = () => lesen('bilder', (s) => s.getAllKeys());
 export const bilderSpeichern = (bilder) => schreiben('bilder', (s) => {

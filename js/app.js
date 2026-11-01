@@ -1,12 +1,14 @@
 import {
-  abgleichen, anzahlJeFach, bewerten, lokalerTag, neuerZustand, tagSicherstellen, zustandPruefen,
+  abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, migrieren,
+  mindestmassText, neuerZustand, offeneKarten, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
 } from './logik.js';
 import {
-  bildIdsLaden, bildLaden, bilderSpeichern, dauerhaftAnfordern, istDauerhaft, zustandLaden, zustandSpeichern,
+  bildIdsLaden, bildLaden, bilderSpeichern, dauerhaftAnfordern, istDauerhaft, vergleichLaden, vergleichSpeichern,
+  zustandLaden, zustandSpeichern,
 } from './speicher.js';
 import { zipLesen } from './zip.js';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const $ = (id) => document.getElementById(id);
 
 let fische = [];
@@ -17,6 +19,9 @@ let bildIds = new Set();
 let bildUrl = null;
 let aufgedeckt = false;
 let beschaeftigt = false;
+let paare = [];
+let paarAktuell = null;
+let vergleichUrls = [];
 
 const heute = () => lokalerTag(new Date());
 
@@ -34,6 +39,9 @@ function fischePruefen(liste) {
     }
     if (f.schonzeit !== null && typeof f.schonzeit !== 'string') {
       throw new Error(`Die Schonzeit von „${f.name}“ muss ein Text oder null sein.`);
+    }
+    if (f.ordnung !== undefined && f.ordnung !== null && typeof f.ordnung !== 'string') {
+      throw new Error(`Die Ordnung von „${f.name}“ muss ein Text oder null sein.`);
     }
   }
   return liste;
@@ -70,7 +78,7 @@ function meldung(element, text, art = '') {
 /* Startseite */
 
 function startZeigen() {
-  const offen = zustand.warteschlange.length;
+  const offen = offeneKarten(zustand);
   const je = anzahlJeFach(zustand, ids);
   $('faellig-zahl').textContent = offen;
   $('faellig-text').textContent = offen === 1 ? 'Karte heute fällig' : 'Karten heute fällig';
@@ -86,6 +94,8 @@ function startZeigen() {
   const keineBilder = bildIds.size === 0;
   $('bilder-hinweis').hidden = !keineBilder;
   $('lernen').disabled = fertig || keineBilder;
+  $('verwechslungen').disabled = paare.length === 0;
+  $('vergleich-hinweis').hidden = paare.length > 0 || keineBilder;
   ansichtZeigen('start');
 }
 
@@ -124,6 +134,7 @@ async function karteZeigen() {
   // Die Lösung kommt erst beim Aufdecken in die Seite.
   $('karte-loesung').hidden = true;
   $('karte-name').textContent = '';
+  $('karte-ordnung').textContent = '';
   $('karte-mass').textContent = '';
   $('karte-schonzeit').textContent = '';
   $('karte-hinweis').textContent = '';
@@ -142,7 +153,8 @@ function aufdecken() {
   if (!fisch) return;
   aufgedeckt = true;
   $('karte-name').textContent = fisch.name;
-  $('karte-mass').textContent = fisch.mindestmass_cm === null ? 'kein Mindestmaß' : `${fisch.mindestmass_cm} cm`;
+  $('karte-ordnung').textContent = fisch.ordnung || 'nicht angegeben';
+  $('karte-mass').textContent = mindestmassText(fisch);
   $('karte-schonzeit').textContent = fisch.schonzeit ?? 'keine Schonzeit';
   $('karte-hinweis').textContent = fisch.hinweis || '';
   $('karte-hinweis-zeile').hidden = !fisch.hinweis;
@@ -170,6 +182,112 @@ async function bewertungAbgeben(gewusst) {
   }
 }
 
+/* Verwechslungen üben */
+
+function vergleichFreigeben() {
+  for (const url of vergleichUrls) URL.revokeObjectURL(url);
+  vergleichUrls = [];
+}
+
+async function vergleichBild(schluessel, alt) {
+  const blob = bildIds.has(schluessel) ? await bildLaden(schluessel) : null;
+  if (!blob) {
+    const platzhalter = document.createElement('div');
+    platzhalter.className = 'platzhalter';
+    platzhalter.textContent = 'Kein Bild vorhanden';
+    return platzhalter;
+  }
+  const bild = document.createElement('img');
+  const url = URL.createObjectURL(blob);
+  vergleichUrls.push(url);
+  bild.src = url;
+  bild.alt = alt;
+  return bild;
+}
+
+async function vergleichZeigen() {
+  const paar = paare.find((p) => p.id === zustand.vergleich[0]);
+  vergleichFreigeben();
+  aufgedeckt = false;
+  paarAktuell = null;
+  if (!paar) {
+    ansichtZeigen('vergleich-fertig');
+    return;
+  }
+  // Die Reihenfolge wechselt, damit nicht die Position die Lösung verrät.
+  paarAktuell = { id: paar.id, gemeinsam: paar.gemeinsam, fische: Math.random() < 0.5 ? paar.fische : [...paar.fische].reverse() };
+  const bilder = await Promise.all(paarAktuell.fische.map((f, i) => vergleichBild(f.vorn, `${i + 1}. Fisch`)));
+  $('vergleich-inhalt').replaceChildren(...bilder.map((bild) => {
+    const rahmen = document.createElement('div');
+    rahmen.className = 'vergleich-vorn';
+    rahmen.append(bild);
+    return rahmen;
+  }));
+  $('vergleich-inhalt').classList.remove('ist-aufgedeckt');
+  $('vergleich-aufdecken').hidden = false;
+  $('vergleich-bewerten').hidden = true;
+  ansichtZeigen('vergleich');
+}
+
+async function vergleichAufdecken() {
+  if (aufgedeckt || !paarAktuell) return;
+  aufgedeckt = true;
+  const teile = [];
+  for (const fisch of paarAktuell.fische) {
+    const block = document.createElement('section');
+    const name = document.createElement('h2');
+    // Fische aus fische.json tragen in beiden Lernmodi dieselben Namen.
+    name.textContent = fischNachId.get(fisch.vorn)?.name ?? fisch.name;
+    block.append(name, await vergleichBild(fisch.hinten, `Unterscheidungsmerkmale: ${name.textContent}`));
+    if (fisch.text) {
+      const text = document.createElement('p');
+      text.textContent = fisch.text;
+      block.append(text);
+    }
+    teile.push(block);
+  }
+  if (paarAktuell.gemeinsam) {
+    const text = document.createElement('p');
+    text.className = 'vergleich-gemeinsam';
+    text.textContent = paarAktuell.gemeinsam;
+    teile.push(text);
+  }
+  $('vergleich-inhalt').replaceChildren(...teile);
+  $('vergleich-inhalt').classList.add('ist-aufgedeckt');
+  $('vergleich-inhalt').scrollTop = 0;
+  $('vergleich-aufdecken').hidden = true;
+  $('vergleich-bewerten').hidden = false;
+}
+
+async function vergleichBewertungAbgeben(gewusst) {
+  if (!aufgedeckt || beschaeftigt || !paarAktuell) return;
+  beschaeftigt = true;
+  try {
+    zustand = vergleichBewerten(zustand, paarAktuell.id, gewusst);
+    await speichern();
+    await vergleichZeigen();
+  } finally {
+    beschaeftigt = false;
+  }
+}
+
+async function vergleichBeginnen() {
+  if (zustand.vergleich.length === 0) {
+    zustand = vergleichStarten(zustand, paare.map((p) => p.id), Math.random);
+    await speichern();
+  }
+  if (location.hash === '#vergleich') await vergleichZeigen();
+  else location.hash = 'vergleich';
+}
+
+function paarePruefen(liste) {
+  const ok = Array.isArray(liste) && liste.every((p) => typeof p?.id === 'string'
+    && Array.isArray(p.fische) && p.fische.length === 2
+    && p.fische.every((f) => ['name', 'vorn', 'hinten', 'text'].every((k) => typeof f?.[k] === 'string')));
+  if (!ok) throw new Error('Die Vergleichsdaten in der ZIP-Datei sind ungültig.');
+  return liste;
+}
+
 /* Bilder importieren */
 
 function bildTyp(kopf) {
@@ -186,9 +304,14 @@ async function bilderImportieren(datei, ausgabe) {
     const eintraege = await zipLesen(datei);
     const neu = [];
     let ignoriert = 0;
+    let neuePaare = null;
     for (const { name, blob } of eintraege) {
+      if (name === 'vergleich.json') {
+        neuePaare = paarePruefen(JSON.parse(await blob.text()));
+        continue;
+      }
       const id = name.match(/^(.+)\.(jpe?g|png|webp)$/i)?.[1];
-      if (!id || !fischNachId.has(id)) {
+      if (!id || !(fischNachId.has(id) || /^(v|extra)_/.test(id))) {
         ignoriert++;
         continue;
       }
@@ -201,10 +324,18 @@ async function bilderImportieren(datei, ausgabe) {
     }
     if (neu.length === 0) throw new Error('In der ZIP-Datei wurde kein passendes Bild gefunden.');
     await bilderSpeichern(neu);
+    if (neuePaare) {
+      await vergleichSpeichern(neuePaare);
+      paare = neuePaare;
+      zustand = { ...zustand, vergleich: zustand.vergleich.filter((id) => paare.some((p) => p.id === id)) };
+      await speichern();
+    }
     bildIds = new Set(await bildIdsLaden());
     await dauerhaftAnfordern();
     const fehlen = ids.filter((id) => !bildIds.has(id)).length;
-    const teile = [`${neu.length} Bilder importiert.`];
+    const fischbilder = neu.filter((b) => fischNachId.has(b.id)).length;
+    const teile = [`${fischbilder} Fischbilder importiert.`];
+    if (neuePaare) teile.push(`${neuePaare.length} Vergleichspaare importiert.`);
     if (ignoriert) teile.push(`${ignoriert} Dateien ignoriert.`);
     if (fehlen) teile.push(`${fehlen} Bilder fehlen noch.`);
     meldung(ausgabe, teile.join(' '), 'erfolg');
@@ -217,9 +348,11 @@ async function bilderImportieren(datei, ausgabe) {
 
 async function einstellungenZeigen() {
   const fehlend = fische.filter((f) => !bildIds.has(f.id));
-  $('bilder-anzahl').textContent = `${ids.length - fehlend.length} vorhanden, ${fehlend.length} fehlen`;
+  $('bilder-anzahl').textContent = `${ids.length - fehlend.length} vorhanden, ${fehlend.length} fehlen, ${paare.length} Vergleichspaare`;
+  $('gruppe').max = ids.length;
+  $('gruppe').value = zustand.gruppe;
   $('bilder-fehlend').textContent = fehlend.length && fehlend.length < ids.length
-    ? `Es fehlen: ${fehlend.map((f) => f.name).join(', ')}`
+    ? `Es fehlen: ${fehlend.map((f) => kurzname(f.name)).join(', ')}`
     : '';
   $('speicher-status').textContent = (await istDauerhaft())
     ? 'Der Browser hat dauerhaften Speicher zugesagt.'
@@ -252,7 +385,7 @@ function quellenFuellen() {
   }
   const ungeprueft = fische.filter((f) => /ungeprüft/i.test(f.hinweis || ''));
   $('ungeprueft').textContent = ungeprueft.length
-    ? `Hinweise mit dem Vermerk „ungeprüft“: ${ungeprueft.map((f) => f.name).join(', ')}.`
+    ? `Hinweise mit dem Vermerk „ungeprüft“: ${ungeprueft.map((f) => kurzname(f.name)).join(', ')}.`
     : '';
   $('version').textContent = `Version ${VERSION}`;
 }
@@ -264,7 +397,7 @@ async function nachweiseFuellen() {
   for (const n of nachweise) {
     const li = document.createElement('li');
     const name = document.createElement('strong');
-    name.textContent = fischNachId.get(n.id)?.name ?? n.id;
+    name.textContent = kurzname(fischNachId.get(n.id)?.name ?? n.id);
     li.append(name, document.createElement('br'), `Urheber: ${n.urheber}`, document.createElement('br'), 'Lizenz: ');
     li.append(n.lizenz_url ? link(n.lizenz_url.replace(/^http:/, 'https:'), n.lizenz) : n.lizenz);
     li.append(document.createElement('br'), link(n.quelle, 'Bild auf Wikimedia Commons'));
@@ -311,16 +444,30 @@ async function fortschrittPruefen(datei) {
 }
 
 async function fortschrittUebernehmen() {
-  zustand = tagSicherstellen(abgleichen(wartenderImport, ids), ids, heute(), Math.random);
+  zustand = tagSicherstellen(gruppeAnwenden(abgleichen(wartenderImport, ids)), ids, heute(), Math.random);
+  zustand = { ...zustand, vergleich: zustand.vergleich.filter((id) => paare.some((p) => p.id === id)) };
   wartenderImport = null;
   await speichern();
   meldung($('fortschritt-meldung'), 'Der Fortschritt wurde importiert.', 'erfolg');
 }
 
 async function fortschrittZuruecksetzen() {
-  zustand = tagSicherstellen(neuerZustand(ids), ids, heute(), Math.random);
+  zustand = tagSicherstellen(neuerZustand(ids, zustand.gruppe), ids, heute(), Math.random);
   await speichern();
   meldung($('fortschritt-meldung'), 'Der Fortschritt wurde zurückgesetzt. Die Bilder bleiben erhalten.', 'erfolg');
+}
+
+async function gruppeAendern() {
+  const ausgabe = $('gruppe-meldung');
+  const wert = Number($('gruppe').value);
+  if (!Number.isInteger(wert) || wert < 1 || wert > ids.length) {
+    meldung(ausgabe, `Bitte eine ganze Zahl von 1 bis ${ids.length} eingeben.`, 'fehler');
+    $('gruppe').value = zustand.gruppe;
+    return;
+  }
+  zustand = gruppeSetzen(zustand, wert);
+  await speichern();
+  meldung(ausgabe, `Aus Fach 1 werden jetzt höchstens ${wert} Karten gleichzeitig abgefragt.`, 'erfolg');
 }
 
 /* Navigation und Bedienung */
@@ -328,7 +475,9 @@ async function fortschrittZuruecksetzen() {
 async function route() {
   await tagPruefen();
   const ziel = location.hash.slice(1);
+  if (ziel !== 'vergleich') vergleichFreigeben();
   if (ziel === 'lernen') await karteZeigen();
+  else if (ziel === 'vergleich') await vergleichZeigen();
   else if (ziel === 'einstellungen') await einstellungenZeigen();
   else {
     bildFreigeben();
@@ -338,18 +487,21 @@ async function route() {
 
 function tastatur(e) {
   if (document.querySelector('dialog[open]') || e.ctrlKey || e.altKey || e.metaKey || e.repeat) return;
-  if ($('ansicht-karte').hidden) return;
+  const karte = !$('ansicht-karte').hidden;
+  if (!karte && $('ansicht-vergleich').hidden) return;
+  const deckeAuf = karte ? aufdecken : vergleichAufdecken;
+  const bewerte = karte ? bewertungAbgeben : vergleichBewertungAbgeben;
   if (e.code === 'Space' && !aufgedeckt) {
     e.preventDefault();
-    aufdecken();
+    deckeAuf();
   } else if (e.code === 'Space') {
     e.preventDefault();
   } else if (aufgedeckt && (e.key === '1' || e.code === 'Numpad1')) {
     e.preventDefault();
-    bewertungAbgeben(true);
+    bewerte(true);
   } else if (aufgedeckt && (e.key === '2' || e.code === 'Numpad2')) {
     e.preventDefault();
-    bewertungAbgeben(false);
+    bewerte(false);
   }
 }
 
@@ -366,6 +518,13 @@ function bedienungEinrichten() {
     meldung($('bilder-meldung-start'), '');
     location.hash = 'lernen';
   });
+  $('verwechslungen').addEventListener('click', vergleichBeginnen);
+  $('vergleich-nochmal').addEventListener('click', vergleichBeginnen);
+  $('vergleich-zur-start').addEventListener('click', () => { location.hash = ''; });
+  $('vergleich-aufdecken').addEventListener('click', vergleichAufdecken);
+  $('vergleich-gewusst').addEventListener('click', () => vergleichBewertungAbgeben(true));
+  $('vergleich-nicht-gewusst').addEventListener('click', () => vergleichBewertungAbgeben(false));
+  $('gruppe').addEventListener('change', gruppeAendern);
   $('oeffne-einstellungen').addEventListener('click', () => { location.hash = 'einstellungen'; });
   $('zur-start').addEventListener('click', () => { location.hash = ''; });
   $('zur-start-fertig').addEventListener('click', () => { location.hash = ''; });
@@ -376,9 +535,7 @@ function bedienungEinrichten() {
   $('bilder-einstellungen').addEventListener('click', () => $('bilder-datei').click());
   dateiWahl($('bilder-datei-start'), async (d) => {
     await bilderImportieren(d, $('bilder-meldung-start'));
-    if (bildIds.size) $('bilder-hinweis').hidden = true;
-    const offen = zustand.warteschlange.length;
-    $('lernen').disabled = offen === 0 || bildIds.size === 0;
+    startZeigen();
   });
   dateiWahl($('bilder-datei'), async (d) => {
     await bilderImportieren(d, $('bilder-meldung'));
@@ -414,7 +571,9 @@ async function start() {
     fischNachId = new Map(fische.map((f) => [f.id, f]));
     ids = fische.map((f) => f.id);
     const gespeichert = await zustandLaden();
-    zustand = abgleichen(gespeichert ?? neuerZustand(ids), ids);
+    paare = (await vergleichLaden()) ?? [];
+    zustand = gruppeAnwenden(abgleichen(migrieren(gespeichert ?? neuerZustand(ids)), ids));
+    zustand = { ...zustand, vergleich: zustand.vergleich.filter((id) => paare.some((p) => p.id === id)) };
     bildIds = new Set(await bildIdsLaden());
     await speichern();
     bedienungEinrichten();

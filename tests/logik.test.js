@@ -1,6 +1,7 @@
 import {
   tagesmenge, istFaellig, differenzTage, lokalerTag, neuerZustand, abgleichen, tagesplan,
-  tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen,
+  tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen, migrieren, gruppeAnwenden,
+  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText,
 } from '../js/logik.js';
 
 const tests = [];
@@ -128,10 +129,151 @@ test('Der Lerntag ist erledigt, wenn die Warteschlange leer ist', () => {
   gleich(tagSicherstellen(z, ids(2), '2026-04-01', zufall()).warteschlange, []);
 });
 test('Die Reihenfolge wird beim Planen zufällig gemischt', () => {
-  const a = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall(3)).warteschlange;
-  const b = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall(4)).warteschlange;
+  const start = neuerZustand(ids(20), 20);
+  const a = tagSicherstellen(start, ids(20), '2026-04-01', zufall(3)).warteschlange;
+  const b = tagSicherstellen(start, ids(20), '2026-04-01', zufall(4)).warteschlange;
   if (JSON.stringify(a) === JSON.stringify(b)) throw new Error('Gleiche Reihenfolge');
   gleich([...a].sort(), [...ids(20)].sort());
+});
+
+// Lerngruppe in Fach 1
+test('Höchstens 7 Karten aus Fach 1 sind gleichzeitig aktiv', () => {
+  const z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  gleich(z.warteschlange.length, 7);
+  gleich(z.reserve.length, 13);
+  gleich(offeneKarten(z), 20);
+  gleich(z.planGroesse, 20);
+});
+test('Ohne gewusste Karte bleiben es immer dieselben 7 Karten', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  const gruppe = [...z.warteschlange].sort();
+  const reserve = [...z.reserve];
+  for (let i = 0; i < 30; i++) {
+    z = bewerten(z, z.warteschlange[0], false, '2026-04-01');
+    gleich([...z.warteschlange].sort(), gruppe);
+    gleich(z.reserve, reserve);
+  }
+});
+test('Sobald eine Karte gewusst wurde, rückt die nächste am Ende nach', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  const neu = z.reserve[0];
+  const id = z.warteschlange[0];
+  z = bewerten(z, id, true, '2026-04-01');
+  gleich(z.warteschlange.length, 7);
+  gleich(z.warteschlange[6], neu);
+  gleich(z.warteschlange.includes(id), false);
+  gleich(z.reserve.length, 12);
+  gleich(offeneKarten(z), 19);
+});
+test('Der Lerntag endet erst, wenn auch die Reserve leer ist', () => {
+  let z = tagSicherstellen(neuerZustand(ids(10)), ids(10), '2026-04-01', zufall());
+  for (let i = 0; i < 9; i++) {
+    z = bewerten(z, z.warteschlange[0], true, '2026-04-01');
+    gleich(offeneKarten(z) > 0, true);
+  }
+  z = bewerten(z, z.warteschlange[0], true, '2026-04-01');
+  gleich(offeneKarten(z), 0);
+});
+test('Die Gruppengröße begrenzt nur Fach 1, nicht Fach 2 bis 4', () => {
+  const liste = ids(12);
+  const z = neuerZustand(liste, 2);
+  liste.slice(0, 4).forEach((id) => { z.karten[id] = { fach: 1, zuletzt: null }; });
+  liste.slice(4).forEach((id) => { z.karten[id] = { fach: 2, zuletzt: '2026-01-01' }; });
+  const p = tagSicherstellen(z, liste, '2026-04-01', zufall());
+  const fach1 = p.warteschlange.filter((id) => p.karten[id].fach === 1);
+  const fach2 = p.warteschlange.filter((id) => p.karten[id].fach === 2);
+  gleich(fach1.length, 2);
+  gleich(fach2.length, 4);
+  gleich(p.reserve.length, 2);
+});
+test('Rückfall aus Fach 2 belegt heute keinen Platz in der Gruppe', () => {
+  let z = neuerZustand(['a', 'b', 'c'], 1);
+  z.karten.a = { fach: 2, zuletzt: '2026-01-01' };
+  z = { ...z, tag: '2026-04-01', warteschlange: ['a', 'b'], reserve: ['c'] };
+  z = bewerten(z, 'a', false, '2026-04-01');
+  gleich(z.warteschlange, ['b']);
+  gleich(z.reserve, ['c']);
+});
+test('Am nächsten Tag bleibt die begonnene Gruppe vor neuen Karten', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  const gruppe = [...z.warteschlange].sort();
+  for (let i = 0; i < 7; i++) z = bewerten(z, z.warteschlange[0], false, '2026-04-01');
+  const morgen = tagSicherstellen(z, ids(20), '2026-04-02', zufall(9));
+  gleich([...morgen.warteschlange].sort(), gruppe);
+});
+test('Lerngruppe und Reserve überstehen einen Neustart', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  z = bewerten(z, z.warteschlange[0], true, '2026-04-01');
+  const danach = tagSicherstellen(neustart(z), ids(20), '2026-04-01', zufall(5));
+  gleich(danach.warteschlange, z.warteschlange);
+  gleich(danach.reserve, z.reserve);
+});
+test('Größere Gruppe holt am selben Tag wartende Karten nach', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  const vorher = offeneKarten(z);
+  z = gruppeSetzen(z, 10);
+  gleich(z.warteschlange.length, 10);
+  gleich(offeneKarten(z), vorher);
+});
+test('Kleinere Gruppe schickt überzählige Karten zurück, die erste Karte bleibt', () => {
+  let z = tagSicherstellen(neuerZustand(ids(20)), ids(20), '2026-04-01', zufall());
+  const erste = z.warteschlange[0];
+  z = gruppeSetzen(z, 3);
+  gleich(z.warteschlange.length, 3);
+  gleich(z.warteschlange[0], erste);
+  gleich(offeneKarten(z), 20);
+});
+test('Ungültige Gruppengröße wird abgelehnt', () => {
+  const z = neuerZustand(ids(3));
+  wirft(() => gruppeSetzen(z, 0), 'null');
+  wirft(() => gruppeSetzen(z, 2.5), 'Kommazahl');
+});
+test('Alter Speicherstand ohne Gruppe wird ohne Verlust übernommen', () => {
+  const alt = neuerZustand(ids(20));
+  alt.karten.k1 = { fach: 3, zuletzt: '2026-03-01' };
+  delete alt.reserve;
+  delete alt.gruppe;
+  delete alt.vergleich;
+  alt.tag = '2026-04-01';
+  alt.warteschlange = ids(20);
+  const z = gruppeAnwenden(abgleichen(migrieren(alt), ids(20)));
+  gleich(z.gruppe, 7);
+  gleich(z.karten.k1, { fach: 3, zuletzt: '2026-03-01' });
+  gleich(offeneKarten(z), 20);
+  gleich(z.warteschlange.filter((id) => z.karten[id].fach === 1).length, 7);
+  gleich(z.warteschlange.includes('k1'), true);
+});
+
+// Anzeige auf der Karte
+test('Ganzjährig geschützte Art zeigt beim Mindestmaß einen Strich', () => {
+  gleich(mindestmassText({ mindestmass_cm: null, schonzeit: 'ganzjährig' }), '-');
+});
+test('Art ohne Schutz und ohne Maß zeigt „kein Mindestmaß“', () => {
+  gleich(mindestmassText({ mindestmass_cm: null, schonzeit: null }), 'kein Mindestmaß');
+});
+test('Teilweise ganzjährig geschonte Art behält ihr Mindestmaß', () => {
+  gleich(mindestmassText({ mindestmass_cm: 40, schonzeit: 'in der Elbe 1. Januar bis 15. Juni, sonst ganzjährig' }), '40 cm');
+});
+test('Der Kurzname ist der erste von mehreren Namen', () => {
+  gleich(kurzname('Quappe | Rutte | Trüsche | Aalrutte'), 'Quappe');
+  gleich(kurzname('Barbe'), 'Barbe');
+});
+
+// Modus für Verwechslungen
+test('Verwechslungen: Gewusst entfernt, Nicht gewusst kommt ans Ende', () => {
+  let z = { ...neuerZustand(['a']), vergleich: ['p1', 'p2', 'p3'] };
+  z = vergleichBewerten(z, 'p1', false);
+  gleich(z.vergleich, ['p2', 'p3', 'p1']);
+  z = vergleichBewerten(z, 'p2', true);
+  gleich(z.vergleich, ['p3', 'p1']);
+  wirft(() => vergleichBewerten(z, 'p1', true), 'falsche Reihenfolge');
+});
+test('Verwechslungen ändern weder Fächer noch Tagesplan', () => {
+  let z = tagSicherstellen(neuerZustand(ids(3)), ids(3), '2026-04-01', zufall());
+  const vorher = JSON.stringify([z.karten, z.warteschlange, z.reserve]);
+  z = vergleichStarten(z, ['p1', 'p2'], zufall());
+  z = vergleichBewerten(z, z.vergleich[0], true);
+  gleich(JSON.stringify([z.karten, z.warteschlange, z.reserve]), vorher);
 });
 
 // Wiederholung in Fach 1
@@ -298,8 +440,19 @@ test('Ungültiger Import wird abgelehnt', () => {
   wirft(() => zustandPruefen({ karten: {}, tag: null, warteschlange: ['x'] }), 'Warteschlange');
 });
 test('Gültiger Import wird übernommen', () => {
-  const z = { karten: { a: { fach: 2, zuletzt: '2026-01-01' } }, tag: '2026-01-01', warteschlange: ['a'], planGroesse: 1 };
+  const z = { karten: { a: { fach: 2, zuletzt: '2026-01-01' } }, tag: '2026-01-01', warteschlange: ['a'], reserve: [], planGroesse: 1, gruppe: 5, vergleich: ['p1'] };
   gleich(zustandPruefen(z), z);
+});
+test('Alte Fortschrittsdatei ohne Gruppe bleibt importierbar', () => {
+  const z = zustandPruefen({ karten: { a: { fach: 2, zuletzt: null } }, tag: null, warteschlange: [] });
+  gleich(z.gruppe, 7);
+  gleich(z.reserve, []);
+  gleich(z.vergleich, []);
+});
+test('Import mit ungültiger Gruppe oder Reserve wird abgelehnt', () => {
+  const basis = { karten: { a: { fach: 1, zuletzt: null } }, tag: null, warteschlange: [] };
+  wirft(() => zustandPruefen({ ...basis, gruppe: 0 }), 'Gruppe');
+  wirft(() => zustandPruefen({ ...basis, reserve: ['x'] }), 'Reserve');
 });
 
 const ergebnisse = tests.map(([name, fn]) => {

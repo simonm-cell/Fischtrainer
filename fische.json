@@ -1,7 +1,8 @@
 [
   {
     "id": "aal",
-    "name": "Aal",
+    "name": "Aal | Europäischer Aal | Flussaal",
+    "ordnung": "Anguilliformes (aalartige Fische)",
     "mindestmass_cm": 50,
     "schonzeit": null,
     "hinweis": "",
@@ -10,16 +11,18 @@
   },
   {
     "id": "aland",
-    "name": "Aland",
+    "name": "Aland | Nerfling | Orfe",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 20,
     "schonzeit": null,
-    "hinweis": "Auch Orfe oder Nerfling. Zuchtform: Goldorfe.",
+    "hinweis": "Zuchtform: Goldorfe.",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "aesche",
     "name": "Äsche",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 35,
     "schonzeit": "1. Januar bis 15. Juni",
     "hinweis": "",
@@ -29,6 +32,7 @@
   {
     "id": "lachs",
     "name": "Atlantischer Lachs",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 60,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -38,6 +42,7 @@
   {
     "id": "stoer",
     "name": "Atlantischer Stör",
+    "ordnung": "Acipenseriformes (störartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung als „Stör“ geführt (Acipenser sturio und A. oxyrinchus).",
@@ -47,6 +52,7 @@
   {
     "id": "bachforelle",
     "name": "Bachforelle",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 28,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -56,6 +62,7 @@
   {
     "id": "bachneunauge",
     "name": "Bachneunauge",
+    "ordnung": "Petromyzontiformes (Rundmäuler)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung unter „Neunauge“ zusammengefasst.",
@@ -65,6 +72,7 @@
   {
     "id": "bachsaibling",
     "name": "Bachsaibling",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 25,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -74,6 +82,7 @@
   {
     "id": "barbe",
     "name": "Barbe",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 50,
     "schonzeit": "15. April bis 30. Juni",
     "hinweis": "",
@@ -83,6 +92,7 @@
   {
     "id": "bitterling",
     "name": "Bitterling",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -91,7 +101,8 @@
   },
   {
     "id": "blaubandbaerbling",
-    "name": "Blaubandbärbling",
+    "name": "Blaubandbärbling | Blaubandgründling",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "Eingeschleppte Art der EU-Unionsliste: Zurücksetzen ist verboten (§ 12 Abs. 2 SächsFischVO).",
@@ -100,25 +111,28 @@
   },
   {
     "id": "blei",
-    "name": "Blei",
+    "name": "Blei | Brachse | Brasse",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Brachse oder Brasse.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "doebel",
-    "name": "Döbel",
+    "name": "Döbel | Aitel",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Aitel.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "dreist_stichling",
     "name": "Dreistachliger Stichling",
+    "ordnung": "Gasterosteiformes (stichlingsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -128,6 +142,7 @@
   {
     "id": "edelkrebs",
     "name": "Edelkrebs",
+    "ordnung": "Flusskrebse (Astacoidea)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Kein Fisch, aber im Sinne des Fischereigesetzes mitgeregelt.",
@@ -136,7 +151,8 @@
   },
   {
     "id": "elritze",
-    "name": "Elritze",
+    "name": "Elritze | Pfrille",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -145,16 +161,18 @@
   },
   {
     "id": "wels",
-    "name": "Europäischer Wels",
+    "name": "Europäischer Wels | Waller",
+    "ordnung": "Siluriformes (welsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Waller.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "flussbarsch",
     "name": "Flussbarsch",
+    "ordnung": "Perciformes (barschartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "Ungeprüft: Eine Lernkarte nennt eine Fangbegrenzung (10 am Tag, davon 5 über 30 cm). In der Verordnung steht sie nicht.",
@@ -164,6 +182,7 @@
   {
     "id": "flussneunauge",
     "name": "Flussneunauge",
+    "ordnung": "Petromyzontiformes (Rundmäuler)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung unter „Neunauge“ zusammengefasst.",
@@ -173,6 +192,7 @@
   {
     "id": "flussperlmuschel",
     "name": "Flussperlmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
@@ -182,6 +202,7 @@
   {
     "id": "giebel",
     "name": "Giebel",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -190,16 +211,18 @@
   },
   {
     "id": "groppe",
-    "name": "Groppe",
+    "name": "Groppe | Koppe | Mühlkoppe",
+    "ordnung": "Scorpeniformes (barschartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
-    "hinweis": "Auch Koppe oder Mühlkoppe.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "grosse_maraene",
     "name": "Große Maräne",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 30,
     "schonzeit": "1. Oktober bis 31. Dezember",
     "hinweis": "Hegene nur in Gewässern mit nachgewiesenen Coregonen und außerhalb ihrer Schonzeit (§ 4 Abs. 2).",
@@ -209,6 +232,7 @@
   {
     "id": "gruendling",
     "name": "Gründling",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -217,16 +241,18 @@
   },
   {
     "id": "guester",
-    "name": "Güster",
+    "name": "Güster | Blicke",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Blicke.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "hasel",
     "name": "Hasel",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -235,7 +261,8 @@
   },
   {
     "id": "hecht",
-    "name": "Hecht",
+    "name": "Hecht | Europäischer Hecht",
+    "ordnung": "Esociformes (hechtartige Fische)",
     "mindestmass_cm": 50,
     "schonzeit": "1. Februar bis 30. April",
     "hinweis": "",
@@ -245,6 +272,7 @@
   {
     "id": "karausche",
     "name": "Karausche",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 15,
     "schonzeit": "1. Februar bis 30. Juni",
     "hinweis": "",
@@ -253,7 +281,8 @@
   },
   {
     "id": "karpfen",
-    "name": "Karpfen",
+    "name": "Karpfen | Schuppenkarpfen",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 40,
     "schonzeit": null,
     "hinweis": "Gilt für Schuppen- und Spiegelkarpfen.",
@@ -262,7 +291,8 @@
   },
   {
     "id": "kaulbarsch",
-    "name": "Kaulbarsch",
+    "name": "Kaulbarsch | Pfaffenlaus | Rotzbarsch",
+    "ordnung": "Perciformes (barschartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -271,7 +301,8 @@
   },
   {
     "id": "kleine_maraene",
-    "name": "Kleine Maräne",
+    "name": "Kleine Maräne | Zwergmaräne",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "Nur die Große Maräne steht in der Anlage.",
@@ -280,7 +311,8 @@
   },
   {
     "id": "maifisch",
-    "name": "Maifisch",
+    "name": "Maifisch | Alse",
+    "ordnung": "Clupeiformes (heringsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung als Alosa spec. geführt.",
@@ -290,6 +322,7 @@
   {
     "id": "marmorkarpfen",
     "name": "Marmorkarpfen",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -299,6 +332,7 @@
   {
     "id": "meerforelle",
     "name": "Meerforelle",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 60,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -308,6 +342,7 @@
   {
     "id": "moderlieschen",
     "name": "Moderlieschen",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -317,6 +352,7 @@
   {
     "id": "nase",
     "name": "Nase",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 40,
     "schonzeit": "in der Elbe 1. Januar bis 15. Juni, sonst ganzjährig",
     "hinweis": "Das Mindestmaß von 40 cm ist nur für die Elbe relevant, sonst ist die Art ganzjährig geschont.",
@@ -325,7 +361,8 @@
   },
   {
     "id": "neunst_stichling",
-    "name": "Neunstachliger Stichling",
+    "name": "Neunstachliger Stichling | Zwergstichling",
+    "ordnung": "Gasterosteiformes (stichlingsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -334,16 +371,18 @@
   },
   {
     "id": "ploetze",
-    "name": "Plötze",
+    "name": "Plötze | Rotauge",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Rotauge.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "quappe",
-    "name": "Quappe",
+    "name": "Quappe | Rutte | Trüsche | Aalrutte",
+    "ordnung": "Gadiformes (dorschartige Fische)",
     "mindestmass_cm": 30,
     "schonzeit": "in Elbe, Vereinigter Mulde und Weißer Elster 1. Januar bis 31. März, sonst ganzjährig",
     "hinweis": "Das Mindestmaß von 30 cm ist nur für diese drei Flüsse relevant, sonst ist die Art ganzjährig geschont.",
@@ -352,7 +391,8 @@
   },
   {
     "id": "rapfen",
-    "name": "Rapfen",
+    "name": "Rapfen | Schied",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 40,
     "schonzeit": "1. Januar bis 31. Mai",
     "hinweis": "",
@@ -362,6 +402,7 @@
   {
     "id": "regenbogenforelle",
     "name": "Regenbogenforelle",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 25,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "Die Schonzeit gilt nur in Fließgewässern.",
@@ -371,6 +412,7 @@
   {
     "id": "rotfeder",
     "name": "Rotfeder",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 20,
     "schonzeit": null,
     "hinweis": "Das Mindestmaß gilt nur in Fließgewässern.",
@@ -379,7 +421,8 @@
   },
   {
     "id": "schlammpeitzger",
-    "name": "Schlammpeitzger",
+    "name": "Schlammpeitzger | Wetterfisch",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -389,6 +432,7 @@
   {
     "id": "schleie",
     "name": "Schleie",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": 25,
     "schonzeit": null,
     "hinweis": "",
@@ -397,16 +441,18 @@
   },
   {
     "id": "schmerle",
-    "name": "Schmerle",
+    "name": "Schmerle | Bachschmerle | Bartgrundel",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
-    "hinweis": "Auch Bachschmerle.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "schneider",
     "name": "Schneider",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -416,6 +462,7 @@
   {
     "id": "schwarzmundgrundel",
     "name": "Schwarzmundgrundel",
+    "ordnung": "Perciformes (barschartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "Laut Prüfungskatalog in Sachsen als neue Art in der Elbe.",
@@ -425,6 +472,7 @@
   {
     "id": "seeforelle",
     "name": "Seeforelle",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 60,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -433,7 +481,8 @@
   },
   {
     "id": "seesaibling",
-    "name": "Seesaibling",
+    "name": "Seesaibling | Schwarzreuter",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": 28,
     "schonzeit": "1. Oktober bis 30. April",
     "hinweis": "",
@@ -442,7 +491,8 @@
   },
   {
     "id": "sonnenbarsch",
-    "name": "Sonnenbarsch",
+    "name": "Sonnenbarsch | Gemeiner Sonnenbarsch | Diamantsonnenbarsch",
+    "ordnung": "Perciformes (barschverwandte Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "Ungeprüft: Steht wohl auf der EU-Unionsliste. Dann wäre Zurücksetzen verboten (§ 12 Abs. 2 SächsFischVO).",
@@ -451,7 +501,8 @@
   },
   {
     "id": "steinbeisser",
-    "name": "Steinbeißer",
+    "name": "Steinbeißer | Dorngrundel",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -460,25 +511,28 @@
   },
   {
     "id": "ukelei",
-    "name": "Ukelei",
+    "name": "Ukelei | Laube",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
-    "hinweis": "Auch Laube.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "zaehrte",
-    "name": "Zährte",
+    "name": "Zährte | Rußnase",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
-    "hinweis": "Auch Rußnase.",
+    "hinweis": "",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "zander",
-    "name": "Zander",
+    "name": "Zander | Schill",
+    "ordnung": "Perciformes (barschartige Fische)",
     "mindestmass_cm": 50,
     "schonzeit": "1. Februar bis 31. Mai",
     "hinweis": "",
@@ -487,7 +541,8 @@
   },
   {
     "id": "zope",
-    "name": "Zope",
+    "name": "Zope | Pleinzen",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -496,7 +551,8 @@
   },
   {
     "id": "zwergwels",
-    "name": "Zwergwels",
+    "name": "Zwergwels | Amerikanischer Wels | Katzenwels",
+    "ordnung": "Siluriformes (welsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": null,
     "hinweis": "",
@@ -506,6 +562,7 @@
   {
     "id": "steinkrebs",
     "name": "Steinkrebs",
+    "ordnung": "Flusskrebse (Astacoidea)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Kein Fisch, aber im Sinne des Fischereigesetzes mitgeregelt.",
@@ -515,6 +572,7 @@
   {
     "id": "grosse_teichmuschel",
     "name": "Große Teichmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
@@ -524,6 +582,7 @@
   {
     "id": "meerneunauge",
     "name": "Meerneunauge",
+    "ordnung": "Petromyzontiformes (Rundmäuler)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung unter „Neunauge“ zusammengefasst.",
@@ -532,7 +591,8 @@
   },
   {
     "id": "finte",
-    "name": "Finte",
+    "name": "Finte | Elben",
+    "ordnung": "Clupeiformes (heringsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "In der Verordnung unter „Maifisch (Alosa spec.)“ zusammengefasst.",
@@ -542,6 +602,7 @@
   {
     "id": "nordseeschnaepel",
     "name": "Nordseeschnäpel",
+    "ordnung": "Salmoniformes (lachsartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -551,6 +612,7 @@
   {
     "id": "stromgruendling",
     "name": "Stromgründling",
+    "ordnung": "Cypriniformes (karpfenartige Fische)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "",
@@ -560,6 +622,7 @@
   {
     "id": "gemeine_teichmuschel",
     "name": "Gemeine Teichmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
@@ -569,6 +632,7 @@
   {
     "id": "abgeplattete_teichmuschel",
     "name": "Abgeplattete Teichmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
@@ -577,16 +641,18 @@
   },
   {
     "id": "bachmuschel",
-    "name": "Bachmuschel",
+    "name": "Bachmuschel | Kleine Flussmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
-    "hinweis": "Auch Kleine Flussmuschel. Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
+    "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
     "quelle": "https://revosax.sachsen.de/vorschrift/19620",
     "stand": "SächsFischVO vom 22.04.2022, Fassung gültig ab 01.06.2022; abgerufen am 31.10.2026"
   },
   {
     "id": "grosse_flussmuschel",
     "name": "Große Flussmuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",
@@ -596,6 +662,7 @@
   {
     "id": "malermuschel",
     "name": "Malermuschel",
+    "ordnung": "Großmuscheln (Flussmuscheln)",
     "mindestmass_cm": null,
     "schonzeit": "ganzjährig",
     "hinweis": "Muschel, im Sinne des Fischereigesetzes mitgeregelt.",

@@ -43,6 +43,8 @@
 
     <div class="unten">
       <button type="button" class="knopf haupt" id="lernen">Lernen starten</button>
+      <button type="button" class="knopf leise" id="verwechslungen">Verwechslungen üben</button>
+      <p class="klein" id="vergleich-hinweis" hidden>Für „Verwechslungen üben“ importiere die neue <code>fischbilder.zip</code> unter „Einstellungen“.</p>
       <button type="button" class="knopf leise" id="oeffne-einstellungen">Einstellungen</button>
     </div>
   </main>
@@ -55,6 +57,8 @@
     <div class="karte-loesung" id="karte-loesung" hidden>
       <h1 id="karte-name"></h1>
       <dl>
+        <dt>Ordnung</dt>
+        <dd id="karte-ordnung"></dd>
         <dt>Mindestmaß</dt>
         <dd id="karte-mass"></dd>
         <dt>Schonzeit</dt>
@@ -71,6 +75,26 @@
         <button type="button" class="knopf gewusst" id="gewusst">Gewusst<kbd>1</kbd></button>
         <button type="button" class="knopf nicht-gewusst" id="nicht-gewusst">Nicht gewusst<kbd>2</kbd></button>
       </div>
+    </div>
+  </main>
+
+  <main class="karte" id="ansicht-vergleich" data-ansicht="vergleich" hidden>
+    <div class="vergleich-inhalt" id="vergleich-inhalt"></div>
+    <div class="karte-knoepfe">
+      <button type="button" class="knopf haupt" id="vergleich-aufdecken">Aufdecken<kbd>Leertaste</kbd></button>
+      <div class="bewerten" id="vergleich-bewerten" hidden>
+        <button type="button" class="knopf gewusst" id="vergleich-gewusst">Gewusst<kbd>1</kbd></button>
+        <button type="button" class="knopf nicht-gewusst" id="vergleich-nicht-gewusst">Nicht gewusst<kbd>2</kbd></button>
+      </div>
+    </div>
+  </main>
+
+  <main class="seite mitte" id="ansicht-vergleich-fertig" data-ansicht="vergleich-fertig" hidden>
+    <h1>Geschafft!</h1>
+    <p class="gross">Du hast alle Verwechslungen durchgearbeitet.</p>
+    <div class="unten">
+      <button type="button" class="knopf haupt" id="vergleich-nochmal">Noch einmal üben</button>
+      <button type="button" class="knopf leise" id="vergleich-zur-start">Zur Startseite</button>
     </div>
   </main>
 
@@ -97,6 +121,14 @@
     </section>
 
     <section>
+      <h2>Lernen</h2>
+      <label for="gruppe">Karten aus Fach 1, die gleichzeitig abgefragt werden</label>
+      <input type="number" id="gruppe" class="zahl" min="1" step="1" inputmode="numeric">
+      <p class="klein">Erst wenn du eine dieser Karten gewusst hast, kommt die nächste dazu.</p>
+      <p id="gruppe-meldung" class="meldung" role="status" hidden></p>
+    </section>
+
+    <section>
       <h2>Fortschritt</h2>
       <div class="knopfreihe">
         <button type="button" class="knopf leise" id="export">Exportieren</button>
@@ -114,6 +146,7 @@
         <a href="https://www.fischerei.sachsen.de/fischereischein-lehrgang-pruefung-3995.html" target="_blank" rel="noopener noreferrer">offiziellen Fragenkatalog</a>,
         Stand 06/2025. Arten ohne Eintrag in der Anlage der Verordnung haben kein Mindestmaß und keine Schonzeit.</p>
       <p class="klein">Der Betreiber eines Gewässers kann strengere Regeln festlegen. Vor dem Angeln gilt immer die aktuelle Gewässerordnung.</p>
+      <p class="klein">Ordnung nach den Lernkarten. Für Arten ohne Lernkarte stammt sie aus <a href="https://www.gbif.org/" target="_blank" rel="noopener noreferrer">GBIF</a>, die Muscheln stehen dort in der Ordnung Unionida. Stand 01.11.2026.</p>
       <p class="klein" id="ungeprueft"></p>
     </section>
 
