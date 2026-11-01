@@ -1,7 +1,8 @@
 import {
   tagesmenge, istFaellig, differenzTage, lokalerTag, neuerZustand, abgleichen, tagesplan,
   tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen, migrieren, gruppeAnwenden,
-  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole, systematik,
+  gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole, systematik, merkgruppeAnlegen, merkKarteHinzufuegen,
+  merkKarteEntfernen, merkgruppeLoeschen, merkRundeStarten, merkBewerten,
 } from '../js/logik.js';
 
 const tests = [];
@@ -292,6 +293,90 @@ test('Symbole: teilweise ganzjährig geschonte Art zählt nach Maß und Schonzei
   gleich(namenVon(40, 'in der Elbe 1. Januar bis 15. Juni, sonst ganzjährig'), ['angel', 'mass', 'kalender']);
 });
 
+// Merkgruppen
+function mitMerkgruppe() {
+  const z = tagSicherstellen(neuerZustand(ids(5)), ids(5), '2026-04-01', zufall());
+  return merkgruppeAnlegen(z, 'g1', '  Weißfische ', 'k1');
+}
+test('Merkgruppe: neue Gruppe enthält die Karte, der Name wird gesäubert', () => {
+  const g = mitMerkgruppe().merkgruppen[0];
+  gleich(g, { id: 'g1', name: 'Weißfische', karten: ['k1'], runde: [] });
+});
+test('Merkgruppe: leerer, zu langer oder doppelter Name wird abgelehnt', () => {
+  const z = mitMerkgruppe();
+  wirft(() => merkgruppeAnlegen(z, 'g2', '   ', 'k1'), 'leer');
+  wirft(() => merkgruppeAnlegen(z, 'g2', 'x'.repeat(41), 'k1'), 'lang');
+  wirft(() => merkgruppeAnlegen(z, 'g2', 'WEISSFISCHE'.replace('SS', 'ß'), 'k1'), 'doppelt');
+});
+test('Merkgruppe: Karte lässt sich einer bestehenden Gruppe hinzufügen, doppelt zählt nicht', () => {
+  let z = merkKarteHinzufuegen(mitMerkgruppe(), 'g1', 'k2');
+  z = merkKarteHinzufuegen(z, 'g1', 'k2');
+  gleich(z.merkgruppen[0].karten, ['k1', 'k2']);
+});
+test('Merkgruppe: Eine Karte darf in mehreren Gruppen sein', () => {
+  const z = merkgruppeAnlegen(mitMerkgruppe(), 'g2', 'Barsche', 'k1');
+  gleich(z.merkgruppen.map((g) => g.karten), [['k1'], ['k1']]);
+});
+test('Merkgruppe: Üben ändert weder Fächer noch Datum noch Tagesplan', () => {
+  let z = merkKarteHinzufuegen(mitMerkgruppe(), 'g1', 'k2');
+  const vorher = JSON.stringify([z.karten, z.warteschlange, z.reserve, z.tag, z.planGroesse]);
+  z = merkRundeStarten(z, 'g1', ids(5), zufall());
+  z = merkBewerten(z, 'g1', z.merkgruppen[0].runde[0], false);
+  z = merkBewerten(z, 'g1', z.merkgruppen[0].runde[0], true);
+  z = merkBewerten(z, 'g1', z.merkgruppen[0].runde[0], true);
+  gleich(JSON.stringify([z.karten, z.warteschlange, z.reserve, z.tag, z.planGroesse]), vorher);
+  gleich(z.merkgruppen[0].runde, []);
+});
+test('Merkgruppe: Nicht gewusst kommt ans Ende, Gewusst ist für die Runde erledigt', () => {
+  let z = { ...mitMerkgruppe() };
+  z = merkKarteHinzufuegen(z, 'g1', 'k2');
+  z = { ...z, merkgruppen: [{ ...z.merkgruppen[0], runde: ['k1', 'k2'] }] };
+  z = merkBewerten(z, 'g1', 'k1', false);
+  gleich(z.merkgruppen[0].runde, ['k2', 'k1']);
+  z = merkBewerten(z, 'g1', 'k2', true);
+  gleich(z.merkgruppen[0].runde, ['k1']);
+  gleich(z.merkgruppen[0].karten, ['k1', 'k2']);
+  wirft(() => merkBewerten(z, 'g1', 'k2', true), 'falsche Reihenfolge');
+});
+test('Merkgruppe: Lernen im Karteikasten ändert die Gruppe nicht', () => {
+  let z = merkRundeStarten(mitMerkgruppe(), 'g1', ids(5), zufall());
+  const vorher = JSON.stringify(z.merkgruppen);
+  z = bewerten(z, z.warteschlange[0], true, '2026-04-01');
+  gleich(JSON.stringify(z.merkgruppen), vorher);
+});
+test('Merkgruppe: Karte während einer Runde kommt ans Ende, ohne Runde wartet sie', () => {
+  let z = merkKarteHinzufuegen(mitMerkgruppe(), 'g1', 'k2');
+  gleich(z.merkgruppen[0].runde, []);
+  z = merkRundeStarten(z, 'g1', ids(5), zufall());
+  z = merkKarteHinzufuegen(z, 'g1', 'k3');
+  gleich(z.merkgruppen[0].runde[2], 'k3');
+});
+test('Merkgruppe: Entfernen und Löschen wirken nur auf die Gruppe', () => {
+  let z = merkKarteHinzufuegen(mitMerkgruppe(), 'g1', 'k2');
+  z = merkRundeStarten(z, 'g1', ids(5), zufall());
+  const karten = JSON.stringify(z.karten);
+  z = merkKarteEntfernen(z, 'g1', 'k1');
+  gleich(z.merkgruppen[0].karten, ['k2']);
+  gleich(z.merkgruppen[0].runde.includes('k1'), false);
+  z = merkgruppeLoeschen(z, 'g1');
+  gleich(z.merkgruppen, []);
+  gleich(JSON.stringify(z.karten), karten);
+});
+test('Merkgruppe: Entfernte Fische fehlen in der Runde, die Gruppe übersteht den Neustart', () => {
+  let z = merkKarteHinzufuegen(mitMerkgruppe(), 'g1', 'k2');
+  z = merkRundeStarten(neustart(z), 'g1', ids(5), zufall());
+  z = abgleichen(z, ['k2', 'k3', 'k4', 'k5']);
+  gleich(z.merkgruppen[0].runde, ['k2']);
+  gleich(z.merkgruppen[0].karten, ['k1', 'k2']);
+});
+test('Merkgruppe: Ältere Stände und Dateien erhalten eine leere Liste', () => {
+  const alt = neuerZustand(['a']);
+  delete alt.merkgruppen;
+  gleich(migrieren(alt).merkgruppen, []);
+  gleich(zustandPruefen({ karten: {}, tag: null, warteschlange: [] }).merkgruppen, []);
+  wirft(() => zustandPruefen({ karten: {}, tag: null, warteschlange: [], merkgruppen: [{ id: 1 }] }), 'ungültig');
+});
+
 // Modus für Verwechslungen
 test('Verwechslungen: Gewusst entfernt, Nicht gewusst kommt ans Ende', () => {
   let z = { ...neuerZustand(['a']), vergleich: ['p1', 'p2', 'p3'] };
@@ -473,7 +558,7 @@ test('Ungültiger Import wird abgelehnt', () => {
   wirft(() => zustandPruefen({ karten: {}, tag: null, warteschlange: ['x'] }), 'Warteschlange');
 });
 test('Gültiger Import wird übernommen', () => {
-  const z = { karten: { a: { fach: 2, zuletzt: '2026-01-01' } }, tag: '2026-01-01', warteschlange: ['a'], reserve: [], planGroesse: 1, gruppe: 5, vergleich: ['p1'] };
+  const z = { karten: { a: { fach: 2, zuletzt: '2026-01-01' } }, tag: '2026-01-01', warteschlange: ['a'], reserve: [], planGroesse: 1, gruppe: 5, vergleich: ['p1'], merkgruppen: [{ id: 'g', name: 'N', karten: ['a'], runde: [] }] };
   gleich(zustandPruefen(z), z);
 });
 test('Alte Fortschrittsdatei ohne Gruppe bleibt importierbar', () => {

@@ -46,7 +46,7 @@ export function mischen(liste, zufall) {
 export function neuerZustand(ids, gruppe = STANDARD_GRUPPE) {
   const karten = {};
   for (const id of ids) karten[id] = { fach: 1, zuletzt: null };
-  return { karten, tag: null, warteschlange: [], reserve: [], planGroesse: 0, gruppe, vergleich: [] };
+  return { karten, tag: null, warteschlange: [], reserve: [], planGroesse: 0, gruppe, vergleich: [], merkgruppen: [] };
 }
 
 const gueltigeGruppe = (n) => Number.isInteger(n) && n >= 1;
@@ -58,6 +58,7 @@ export function migrieren(zustand) {
     reserve: zustand.reserve ?? [],
     gruppe: gueltigeGruppe(zustand.gruppe) ? zustand.gruppe : STANDARD_GRUPPE,
     vergleich: zustand.vergleich ?? [],
+    merkgruppen: zustand.merkgruppen ?? [],
   };
 }
 
@@ -74,6 +75,7 @@ export function abgleichen(zustand, ids) {
     karten,
     warteschlange: zustand.warteschlange.filter((id) => aktiv.has(id)),
     reserve: zustand.reserve.filter((id) => aktiv.has(id)),
+    merkgruppen: zustand.merkgruppen.map((g) => ({ ...g, runde: g.runde.filter((id) => aktiv.has(id)) })),
   };
 }
 
@@ -173,6 +175,61 @@ export function bewerten(zustand, id, gewusst, heute) {
   });
 }
 
+// Merkgruppen liegen neben dem Karteikasten und ändern weder Fächer noch Tagesplan.
+const MAX_MERKNAME = 40;
+
+function merkgruppeAendern(zustand, gruppeId, aendern) {
+  if (!zustand.merkgruppen.some((g) => g.id === gruppeId)) throw new Error('Diese Merkgruppe gibt es nicht mehr.');
+  return {
+    ...zustand,
+    merkgruppen: zustand.merkgruppen.map((g) => (g.id === gruppeId ? aendern(g) : g)),
+  };
+}
+
+export function merkgruppeAnlegen(zustand, gruppeId, name, kartenId) {
+  const sauber = name.trim();
+  if (!sauber) throw new Error('Bitte gib der Merkgruppe einen Namen.');
+  if (sauber.length > MAX_MERKNAME) throw new Error(`Der Name darf höchstens ${MAX_MERKNAME} Zeichen lang sein.`);
+  if (zustand.merkgruppen.some((g) => g.name.toLowerCase() === sauber.toLowerCase())) {
+    throw new Error('Eine Merkgruppe mit diesem Namen gibt es schon.');
+  }
+  return {
+    ...zustand,
+    merkgruppen: [...zustand.merkgruppen, { id: gruppeId, name: sauber, karten: [kartenId], runde: [] }],
+  };
+}
+
+// Läuft gerade eine Runde, kommt die neue Karte ans Ende und wird noch mit abgefragt.
+export const merkKarteHinzufuegen = (zustand, gruppeId, kartenId) => merkgruppeAendern(zustand, gruppeId, (g) => (
+  g.karten.includes(kartenId) ? g : {
+    ...g,
+    karten: [...g.karten, kartenId],
+    runde: g.runde.length ? [...g.runde, kartenId] : g.runde,
+  }
+));
+
+export const merkKarteEntfernen = (zustand, gruppeId, kartenId) => merkgruppeAendern(zustand, gruppeId, (g) => ({
+  ...g,
+  karten: g.karten.filter((id) => id !== kartenId),
+  runde: g.runde.filter((id) => id !== kartenId),
+}));
+
+export const merkgruppeLoeschen = (zustand, gruppeId) => ({
+  ...zustand,
+  merkgruppen: zustand.merkgruppen.filter((g) => g.id !== gruppeId),
+});
+
+export const merkRundeStarten = (zustand, gruppeId, ids, zufall) => merkgruppeAendern(zustand, gruppeId, (g) => ({
+  ...g,
+  runde: mischen(g.karten.filter((id) => ids.includes(id)), zufall),
+}));
+
+export const merkBewerten = (zustand, gruppeId, kartenId, gewusst) => merkgruppeAendern(zustand, gruppeId, (g) => {
+  if (g.runde[0] !== kartenId) throw new Error('Diese Karte ist nicht an der Reihe.');
+  const rest = g.runde.slice(1);
+  return { ...g, runde: gewusst ? rest : [...rest, kartenId] };
+});
+
 // Mehrere Namen eines Fisches stehen mit " | " getrennt im Feld name.
 export const kurzname = (name) => name.split(' | ')[0];
 
@@ -242,6 +299,12 @@ export function zustandPruefen(z) {
   if (z.vergleich !== undefined && (!Array.isArray(z.vergleich) || z.vergleich.some((id) => typeof id !== 'string'))) {
     throw new Error('Die Verwechslungen in der Datei sind ungültig.');
   }
+  const textListe = (l) => Array.isArray(l) && l.every((id) => typeof id === 'string');
+  if (z.merkgruppen !== undefined && !(Array.isArray(z.merkgruppen) && z.merkgruppen.every((g) => (
+    typeof g?.id === 'string' && typeof g.name === 'string' && textListe(g.karten) && textListe(g.runde)
+  )))) {
+    throw new Error('Die Merkgruppen in der Datei sind ungültig.');
+  }
   for (const karte of Object.values(z.karten)) {
     const fachOk = Number.isInteger(karte?.fach) && karte.fach >= 1 && karte.fach <= 5;
     const zuletztOk = karte?.zuletzt === null || (typeof karte?.zuletzt === 'string' && DATUM.test(karte.zuletzt));
@@ -255,5 +318,6 @@ export function zustandPruefen(z) {
     planGroesse: Number.isInteger(z.planGroesse) ? z.planGroesse : z.warteschlange.length,
     gruppe: z.gruppe,
     vergleich: z.vergleich,
+    merkgruppen: z.merkgruppen,
   });
 }

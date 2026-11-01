@@ -159,7 +159,9 @@ kbd { display: none; }
 }
 .karte-loesung h1 { margin-bottom: 6px; font-size: 1.4rem; }
 .symbol-vorrat { position: absolute; width: 0; height: 0; overflow: hidden; }
-.karte-symbole { display: flex; gap: 12px; margin-bottom: 6px; color: var(--haupt); }
+.karte-leiste { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.karte-symbole { display: flex; gap: 12px; color: var(--haupt); }
+.karte-leiste .merken { width: auto; min-height: 44px; padding: 6px 14px; flex: none; font-size: .95rem; }
 .karte-symbole svg {
   width: 32px;
   height: 32px;
@@ -194,6 +196,30 @@ kbd { display: none; }
   font: inherit;
   font-weight: 650;
 }
+.text-eingabe {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  margin: 8px 0 10px;
+  padding: 8px 12px;
+  border: 2px solid var(--text-leise);
+  border-radius: 10px;
+  background: var(--flaeche);
+  color: var(--text);
+  font: inherit;
+}
+.text-eingabe:focus-visible { outline: 3px solid #1565c0; outline-offset: 2px; }
+.merk-liste { display: flex; flex-direction: column; gap: 14px; }
+.merk-eintrag .knopf { margin-top: 6px; }
+.merk-eintrag details { margin-top: 12px; }
+.merk-eintrag summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.merk-karten { list-style: none; margin: 0 0 8px; padding: 0; }
+.merk-karten li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--linie); }
+.knopf.klein-knopf { width: auto; min-height: 44px; margin: 0; padding: 4px 12px; flex: none; font-size: .9rem; }
+#merk-dialog h3 { margin: 12px 0 8px; font-size: 1rem; }
+.merk-dialog-liste { display: flex; flex-direction: column; gap: 8px; max-height: 34dvh; overflow-y: auto; }
+.merk-neu { margin-top: 14px; }
+#merk-dialog #merk-abbrechen { margin-top: 10px; }
 .zahl:focus-visible { outline: 3px solid #1565c0; outline-offset: 2px; }
 
 /* Verwechslungen: vorn nur zwei Bilder, hinten Merkmale zum Durchscrollen */

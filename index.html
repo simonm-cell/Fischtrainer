@@ -51,6 +51,7 @@
 
     <div class="unten">
       <button type="button" class="knopf haupt" id="lernen">Lernen starten</button>
+      <button type="button" class="knopf leise" id="oeffne-merkgruppen">Merkgruppen</button>
       <button type="button" class="knopf leise" id="verwechslungen">Verwechslungen üben</button>
       <p class="klein" id="vergleich-hinweis" hidden>Für „Verwechslungen üben“ importiere die neue <code>fischbilder.zip</code> unter „Einstellungen“.</p>
       <button type="button" class="knopf leise" id="oeffne-einstellungen">Einstellungen</button>
@@ -64,7 +65,10 @@
     </div>
     <div class="karte-loesung" id="karte-loesung" hidden>
       <h1 id="karte-name"></h1>
-      <div class="karte-symbole" id="karte-symbole" role="img"></div>
+      <div class="karte-leiste">
+        <div class="karte-symbole" id="karte-symbole" role="img"></div>
+        <button type="button" class="knopf leise merken" id="merken">Merken</button>
+      </div>
       <dl>
         <dt>Ordnung | Gattung</dt>
         <dd id="karte-ordnung"></dd>
@@ -177,6 +181,23 @@
     <p class="klein" id="version"></p>
   </main>
 
+  <main class="seite" id="ansicht-merkgruppen" data-ansicht="merkgruppen" hidden>
+    <button type="button" class="knopf leise zurueck" id="merk-zur-start">Zurück</button>
+    <h1>Merkgruppen</h1>
+    <p class="klein">Üben ändert weder Fächer noch Tagesplan.</p>
+    <p id="merk-leer" hidden>Noch keine Merkgruppe vorhanden. Decke beim Lernen eine Karte auf und tippe auf „Merken“.</p>
+    <div class="merk-liste" id="merk-liste"></div>
+  </main>
+
+  <main class="seite mitte" id="ansicht-merk-fertig" data-ansicht="merk-fertig" hidden>
+    <h1>Geschafft!</h1>
+    <p class="gross" id="merk-fertig-text"></p>
+    <div class="unten">
+      <button type="button" class="knopf haupt" id="merk-nochmal">Noch einmal üben</button>
+      <button type="button" class="knopf leise" id="merk-zur-liste">Zu den Merkgruppen</button>
+    </div>
+  </main>
+
   <main class="seite mitte" id="ansicht-fehler" data-ansicht="fehler" hidden>
     <h1>Fischtrainer</h1>
     <p id="start-fehler" class="meldung fehler" role="alert"></p>
@@ -185,10 +206,37 @@
   <dialog id="reset-dialog">
     <form method="dialog">
       <h2>Fortschritt wirklich zurücksetzen?</h2>
-      <p>Alle Karten starten dann wieder in Fach 1. Die Bilder bleiben erhalten.</p>
+      <p>Alle Karten starten dann wieder in Fach 1. Bilder und Merkgruppen bleiben erhalten.</p>
       <div class="knopfreihe">
         <button class="knopf leise" value="nein" autofocus>Abbrechen</button>
         <button class="knopf gefahr" value="ja" id="reset-ja">Zurücksetzen</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="merk-dialog" aria-labelledby="merk-dialog-titel">
+    <h2 id="merk-dialog-titel">Karte merken</h2>
+    <p id="merk-dialog-karte"></p>
+    <div id="merk-dialog-bestehend" hidden>
+      <h3>Zu bestehender Merkgruppe</h3>
+      <div class="merk-dialog-liste" id="merk-dialog-liste"></div>
+    </div>
+    <form id="merk-neu" class="merk-neu">
+      <label for="merk-name">Neue Merkgruppe</label>
+      <input type="text" id="merk-name" class="text-eingabe" maxlength="40" autocomplete="off">
+      <button type="submit" class="knopf haupt" id="merk-anlegen">Anlegen und hinzufügen</button>
+    </form>
+    <p id="merk-dialog-meldung" class="meldung" role="alert" hidden></p>
+    <button type="button" class="knopf leise" id="merk-abbrechen">Abbrechen</button>
+  </dialog>
+
+  <dialog id="merk-loeschen-dialog">
+    <form method="dialog">
+      <h2>Merkgruppe wirklich löschen?</h2>
+      <p><strong id="merk-loeschen-name"></strong> wird gelöscht. Die Karten und ihre Fächer bleiben erhalten.</p>
+      <div class="knopfreihe">
+        <button class="knopf leise" value="nein" autofocus>Abbrechen</button>
+        <button class="knopf gefahr" value="ja" id="merk-loeschen-ja">Löschen</button>
       </div>
     </form>
   </dialog>

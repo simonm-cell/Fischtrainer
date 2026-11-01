@@ -27,6 +27,8 @@ Die Bilder und die Texte für „Verwechslungen üben“ werden nur im Browser a
 
 **Verwechslungen üben:** Die App zeigt zwei leicht verwechselbare Fische ohne Namen. Beim Aufdecken erscheinen die markierten Merkmale und Erklärungen. Nicht gewusste Paare kommen erneut, bis du alle gewusst hast. Dieser Modus ändert weder Fächer noch Tagesplan.
 
+**Merkgruppen:** Tippe auf der Rückseite einer Karte auf **Merken** und wähle eine bestehende Merkgruppe oder lege eine neue an. Unter **Merkgruppen** auf der Startseite übst du jede Gruppe so oft du möchtest. Das ändert weder Fächer noch Tagesplan. Dort kannst du auch Karten entfernen und Gruppen löschen. Merkgruppen wandern beim Fortschritts-Export mit.
+
 ## Nutzung am Computer
 
 Öffne die Adresse der App in Chrome und importiere die Bilder wie oben. Du kannst auch per Tastatur lernen:
@@ -36,6 +38,7 @@ Die Bilder und die Texte für „Verwechslungen üben“ werden nur im Browser a
 | Leertaste | Aufdecken |
 | 1 | Gewusst |
 | 2 | Nicht gewusst |
+| M | Karte merken (auf der Rückseite) |
 
 Mit der Zurück-Funktion des Browsers oder des Handys kommst du jederzeit zur Startseite. Du machst danach an derselben Stelle weiter.
 

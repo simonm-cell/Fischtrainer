@@ -1,5 +1,6 @@
 import {
-  abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, migrieren,
+  abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, merkBewerten,
+  merkKarteEntfernen, merkKarteHinzufuegen, merkRundeStarten, merkgruppeAnlegen, merkgruppeLoeschen, migrieren,
   mindestmassText, neuerZustand, offeneKarten, symbole, systematik, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
 } from './logik.js';
 import {
@@ -8,7 +9,7 @@ import {
 } from './speicher.js';
 import { zipLesen } from './zip.js';
 
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const $ = (id) => document.getElementById(id);
 
 let fische = [];
@@ -22,6 +23,8 @@ let beschaeftigt = false;
 let paare = [];
 let paarAktuell = null;
 let vergleichUrls = [];
+let merkGruppeId = null;
+let merkZumLoeschen = null;
 
 const heute = () => lokalerTag(new Date());
 
@@ -148,15 +151,25 @@ async function bildZeigen(id) {
   }
 }
 
+const merkgruppe = (id) => zustand.merkgruppen.find((g) => g.id === id);
+
+// Die Lernkarte dient dem Karteikasten und den Merkgruppen.
+const aktuelleKarte = () => (merkGruppeId ? merkgruppe(merkGruppeId)?.runde[0] : zustand.warteschlange[0]);
+
 async function karteZeigen() {
-  if (await tagPruefen()) {
+  if (!merkGruppeId && await tagPruefen()) {
     location.hash = '';
     return;
   }
-  const id = zustand.warteschlange[0];
+  const id = aktuelleKarte();
   if (!id) {
     bildFreigeben();
-    ansichtZeigen('fertig');
+    if (merkGruppeId) {
+      $('merk-fertig-text').textContent = `Du hast alle Karten aus „${merkgruppe(merkGruppeId)?.name ?? ''}“ durchgearbeitet.`;
+      ansichtZeigen('merk-fertig');
+    } else {
+      ansichtZeigen('fertig');
+    }
     return;
   }
   aufgedeckt = false;
@@ -183,7 +196,7 @@ async function karteZeigen() {
 
 function aufdecken() {
   if (aufgedeckt) return;
-  const fisch = fischNachId.get(zustand.warteschlange[0]);
+  const fisch = fischNachId.get(aktuelleKarte());
   if (!fisch) return;
   aufgedeckt = true;
   $('karte-name').textContent = fisch.name;
@@ -202,6 +215,7 @@ function aufdecken() {
   $('karte-loesung').hidden = false;
   $('aufdecken').hidden = true;
   $('bewerten').hidden = false;
+  merkenKnopfAktualisieren();
   document.querySelector('.karte').classList.add('ist-aufgedeckt');
   $('karte-loesung').scrollTop = 0;
 }
@@ -210,16 +224,144 @@ async function bewertungAbgeben(gewusst) {
   if (!aufgedeckt || beschaeftigt) return;
   beschaeftigt = true;
   try {
-    if (await tagPruefen()) {
-      location.hash = '';
-      return;
+    if (merkGruppeId) {
+      zustand = merkBewerten(zustand, merkGruppeId, aktuelleKarte(), gewusst);
+    } else {
+      if (await tagPruefen()) {
+        location.hash = '';
+        return;
+      }
+      zustand = bewerten(zustand, zustand.warteschlange[0], gewusst, zustand.tag);
     }
-    zustand = bewerten(zustand, zustand.warteschlange[0], gewusst, zustand.tag);
     await speichern();
     await karteZeigen();
   } finally {
     beschaeftigt = false;
   }
+}
+
+/* Merkgruppen */
+
+function merkenKnopfAktualisieren() {
+  const id = aktuelleKarte();
+  const anzahl = zustand.merkgruppen.filter((g) => g.karten.includes(id)).length;
+  $('merken').textContent = anzahl ? `Gemerkt (${anzahl})` : 'Merken';
+}
+
+function merkDialogFuellen() {
+  const id = aktuelleKarte();
+  const fisch = fischNachId.get(id);
+  $('merk-dialog-karte').textContent = fisch ? kurzname(fisch.name) : '';
+  const liste = $('merk-dialog-liste');
+  liste.replaceChildren(...zustand.merkgruppen.map((g) => {
+    const knopf = document.createElement('button');
+    const drin = g.karten.includes(id);
+    knopf.type = 'button';
+    knopf.className = 'knopf leise';
+    knopf.textContent = drin ? `${g.name}: enthalten` : g.name;
+    knopf.disabled = drin;
+    knopf.addEventListener('click', () => merkHinzufuegen(g.id));
+    return knopf;
+  }));
+  $('merk-dialog-bestehend').hidden = zustand.merkgruppen.length === 0;
+  $('merk-name').value = '';
+  meldung($('merk-dialog-meldung'), '');
+}
+
+async function merkHinzufuegen(gruppeId) {
+  zustand = merkKarteHinzufuegen(zustand, gruppeId, aktuelleKarte());
+  await speichern();
+  $('merk-dialog').close();
+  merkenKnopfAktualisieren();
+}
+
+async function merkNeu(e) {
+  e.preventDefault();
+  try {
+    const id = `g-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    zustand = merkgruppeAnlegen(zustand, id, $('merk-name').value, aktuelleKarte());
+  } catch (fehler) {
+    meldung($('merk-dialog-meldung'), fehler.message, 'fehler');
+    return;
+  }
+  await speichern();
+  $('merk-dialog').close();
+  merkenKnopfAktualisieren();
+}
+
+async function merkUeben(gruppeId) {
+  const g = merkgruppe(gruppeId);
+  if (!g) return;
+  if (g.runde.length === 0) {
+    zustand = merkRundeStarten(zustand, gruppeId, ids, Math.random);
+    await speichern();
+  }
+  const ziel = `merkgruppe-${gruppeId}`;
+  if (location.hash === `#${ziel}`) await route();
+  else location.hash = ziel;
+}
+
+function merkEintragBauen(g) {
+  const karten = g.karten.filter((id) => fischNachId.has(id));
+  const block = document.createElement('section');
+  block.className = 'merk-eintrag';
+  const titel = document.createElement('h2');
+  titel.textContent = g.name;
+  const info = document.createElement('p');
+  info.className = 'klein';
+  info.textContent = `${karten.length} ${karten.length === 1 ? 'Karte' : 'Karten'}`;
+  const ueben = document.createElement('button');
+  ueben.type = 'button';
+  ueben.className = 'knopf haupt';
+  ueben.textContent = g.runde.length ? `Weiter üben (${g.runde.length} offen)` : 'Üben';
+  ueben.disabled = karten.length === 0;
+  ueben.addEventListener('click', () => merkUeben(g.id));
+
+  const details = document.createElement('details');
+  const kopf = document.createElement('summary');
+  kopf.textContent = 'Karten verwalten';
+  const liste = document.createElement('ul');
+  liste.className = 'merk-karten';
+  for (const id of karten) {
+    const zeile = document.createElement('li');
+    const name = document.createElement('span');
+    name.textContent = kurzname(fischNachId.get(id).name);
+    const weg = document.createElement('button');
+    weg.type = 'button';
+    weg.className = 'knopf leise klein-knopf';
+    weg.textContent = 'Entfernen';
+    weg.setAttribute('aria-label', `${name.textContent} aus ${g.name} entfernen`);
+    weg.addEventListener('click', async () => {
+      zustand = merkKarteEntfernen(zustand, g.id, id);
+      await speichern();
+      merkgruppenZeigen(g.id);
+    });
+    zeile.append(name, weg);
+    liste.append(zeile);
+  }
+  const loeschen = document.createElement('button');
+  loeschen.type = 'button';
+  loeschen.className = 'knopf gefahr';
+  loeschen.textContent = 'Merkgruppe löschen';
+  loeschen.addEventListener('click', () => {
+    merkZumLoeschen = g.id;
+    $('merk-loeschen-name').textContent = g.name;
+    $('merk-loeschen-dialog').showModal();
+  });
+  details.append(kopf, liste, loeschen);
+  block.append(titel, info, ueben, details);
+  return block;
+}
+
+function merkgruppenZeigen(offeneGruppe = null) {
+  const bloecke = zustand.merkgruppen.map((g) => {
+    const block = merkEintragBauen(g);
+    if (g.id === offeneGruppe) block.querySelector('details').open = true;
+    return block;
+  });
+  $('merk-liste').replaceChildren(...bloecke);
+  $('merk-leer').hidden = zustand.merkgruppen.length > 0;
+  ansichtZeigen('merkgruppen');
 }
 
 /* Verwechslungen üben */
@@ -477,6 +619,8 @@ async function fortschrittPruefen(datei) {
     }
     if (inhalt?.app !== 'fischtrainer') throw new Error('Das ist keine Fortschrittsdatei des Fischtrainers.');
     wartenderImport = zustandPruefen(inhalt.zustand);
+    // Ältere Dateien kennen keine Merkgruppen und dürfen vorhandene nicht löschen.
+    if (inhalt.zustand.merkgruppen === undefined) wartenderImport.merkgruppen = zustand.merkgruppen;
     $('import-dialog').showModal();
   } catch (e) {
     meldung(ausgabe, e.message, 'fehler');
@@ -492,7 +636,8 @@ async function fortschrittUebernehmen() {
 }
 
 async function fortschrittZuruecksetzen() {
-  zustand = tagSicherstellen(neuerZustand(ids, zustand.gruppe), ids, heute(), Math.random);
+  const merkgruppen = zustand.merkgruppen.map((g) => ({ ...g, runde: [] }));
+  zustand = { ...tagSicherstellen(neuerZustand(ids, zustand.gruppe), ids, heute(), Math.random), merkgruppen };
   await speichern();
   meldung($('fortschritt-meldung'), 'Der Fortschritt wurde zurückgesetzt. Die Bilder bleiben erhalten.', 'erfolg');
 }
@@ -516,7 +661,17 @@ async function route() {
   await tagPruefen();
   const ziel = location.hash.slice(1);
   if (ziel !== 'vergleich') vergleichFreigeben();
-  if (ziel === 'lernen') await karteZeigen();
+  merkGruppeId = null;
+  if (ziel.startsWith('merkgruppe-')) {
+    const id = ziel.slice('merkgruppe-'.length);
+    if (merkgruppe(id)) {
+      merkGruppeId = id;
+      await karteZeigen();
+    } else {
+      location.hash = 'merkgruppen';
+    }
+  } else if (ziel === 'merkgruppen') merkgruppenZeigen();
+  else if (ziel === 'lernen') await karteZeigen();
   else if (ziel === 'vergleich') await vergleichZeigen();
   else if (ziel === 'einstellungen') await einstellungenZeigen();
   else {
@@ -536,6 +691,9 @@ function tastatur(e) {
     deckeAuf();
   } else if (e.code === 'Space') {
     e.preventDefault();
+  } else if (karte && aufgedeckt && e.key.toLowerCase() === 'm') {
+    e.preventDefault();
+    $('merken').click();
   } else if (aufgedeckt && (e.key === '1' || e.code === 'Numpad1')) {
     e.preventDefault();
     bewerte(true);
@@ -559,6 +717,25 @@ function bedienungEinrichten() {
     location.hash = 'lernen';
   });
   $('verwechslungen').addEventListener('click', vergleichBeginnen);
+  $('oeffne-merkgruppen').addEventListener('click', () => { location.hash = 'merkgruppen'; });
+  $('merk-zur-start').addEventListener('click', () => { location.hash = ''; });
+  $('merk-nochmal').addEventListener('click', () => merkUeben(merkGruppeId));
+  $('merk-zur-liste').addEventListener('click', () => { location.hash = 'merkgruppen'; });
+  $('merken').addEventListener('click', () => {
+    merkDialogFuellen();
+    $('merk-dialog').showModal();
+  });
+  $('merk-neu').addEventListener('submit', merkNeu);
+  $('merk-abbrechen').addEventListener('click', () => $('merk-dialog').close());
+  $('merk-loeschen-dialog').addEventListener('close', async () => {
+    if ($('merk-loeschen-dialog').returnValue === 'ja' && merkZumLoeschen) {
+      zustand = merkgruppeLoeschen(zustand, merkZumLoeschen);
+      await speichern();
+      merkgruppenZeigen();
+    }
+    merkZumLoeschen = null;
+    $('merk-loeschen-dialog').returnValue = '';
+  });
   $('vergleich-nochmal').addEventListener('click', vergleichBeginnen);
   $('vergleich-zur-start').addEventListener('click', () => { location.hash = ''; });
   $('vergleich-aufdecken').addEventListener('click', vergleichAufdecken);
@@ -599,8 +776,8 @@ function bedienungEinrichten() {
   // Nach einem App-Wechsel bleibt die Karte, wie sie war, außer es ist ein neuer Tag.
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && await tagPruefen()) {
-      if (location.hash) location.hash = '';
-      else startZeigen();
+      if (location.hash === '#lernen') location.hash = '';
+      else if (!location.hash) startZeigen();
     }
   });
 }

@@ -1,7 +1,7 @@
 // Hält die App offline bereit. Importierte Bilder und Fortschritt liegen in
 // IndexedDB und werden hier nie angefasst.
 
-const CACHE = 'fischtrainer-app-v4';
+const CACHE = 'fischtrainer-app-v5';
 const WARTEZEIT_MS = 3000;
 const DATEIEN = [
   './',
