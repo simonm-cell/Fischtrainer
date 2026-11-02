@@ -230,8 +230,42 @@ export const merkBewerten = (zustand, gruppeId, kartenId, gewusst) => merkgruppe
   return { ...g, runde: gewusst ? rest : [...rest, kartenId] };
 });
 
+// Blättern dreht nur die offenen Karten weiter. Die sichtbare Karte steht immer vorn.
+export const merkBlaettern = (zustand, gruppeId, richtung) => merkgruppeAendern(zustand, gruppeId, (g) => {
+  if (g.runde.length < 2) return g;
+  return {
+    ...g,
+    runde: richtung > 0 ? [...g.runde.slice(1), g.runde[0]] : [g.runde.at(-1), ...g.runde.slice(0, -1)],
+  };
+});
+
 // Mehrere Namen eines Fisches stehen mit " | " getrennt im Feld name.
 export const kurzname = (name) => name.split(' | ')[0];
+
+// Beide Schreibweisen zählen: „Äsche“ findet man über „aesche“ und über „asche“.
+const UMSCHRIFT = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' };
+const OHNE_PUNKTE = { ä: 'a', ö: 'o', ü: 'u', ß: 'ss' };
+
+function schreibweisen(text) {
+  const klein = text.normalize('NFC').toLowerCase().trim().replace(/\s+/g, ' ');
+  return [UMSCHRIFT, OHNE_PUNKTE].map((tabelle) => klein.replace(/[äöüß]/g, (z) => tabelle[z]));
+}
+
+// Sucht in allen Namen einer Karte. Treffer am Wortanfang stehen vorn, sonst
+// geht es nach dem Alphabet. Ohne Suchtext erscheinen alle Karten.
+export function fischeSuchen(fische, text) {
+  const gesucht = schreibweisen(text);
+  const sortiert = [...fische].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  if (!gesucht[0]) return sortiert;
+  const wortanfang = [];
+  const mittendrin = [];
+  for (const fisch of sortiert) {
+    const namen = schreibweisen(fisch.name);
+    if (gesucht.some((g, i) => namen[i].startsWith(g) || namen[i].includes(` ${g}`))) wortanfang.push(fisch);
+    else if (gesucht.some((g, i) => namen[i].includes(g))) mittendrin.push(fisch);
+  }
+  return [...wortanfang, ...mittendrin];
+}
 
 // Ganzjährig geschützte Arten haben kein Maß, das beim Fang eine Rolle spielt.
 export function mindestmassText(fisch) {

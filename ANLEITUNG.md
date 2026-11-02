@@ -29,6 +29,10 @@ Die Bilder und die Texte für „Verwechslungen üben“ werden nur im Browser a
 
 **Merkgruppen:** Tippe auf der Rückseite einer Karte auf **Merken** und wähle eine bestehende Merkgruppe oder lege eine neue an. Unter **Merkgruppen** auf der Startseite übst du jede Gruppe so oft du möchtest. Das ändert weder Fächer noch Tagesplan. Dort kannst du auch Karten entfernen und Gruppen löschen. Merkgruppen wandern beim Fortschritts-Export mit.
 
+**Blättern in Merkgruppen:** Beim Üben wischst du nach links zur nächsten und nach rechts zur vorherigen offenen Karte. Eine aufgedeckte Karte bleibt beim Blättern aufgedeckt, eine verdeckte bleibt verdeckt. Karten, die du in dieser Runde schon gewusst hast, kommen erst in der nächsten Runde wieder. Nach einer Bewertung ist die nächste Karte immer verdeckt.
+
+**Karte suchen:** Tippe oben rechts auf die Lupe und gib einen Namen oder einen Teil davon ein. Großschreibung spielt keine Rolle, und „Äsche“ findest du auch über „aesche“ oder „asche“. Die Karte zeigt alle Angaben sofort. Du kannst sie merken, aber nicht bewerten, deshalb ändert die Suche weder Fächer noch Tagesplan. Die Lupe gibt es überall außer in den Einstellungen.
+
 ## Nutzung am Computer
 
 Öffne die Adresse der App in Chrome und importiere die Bilder wie oben. Du kannst auch per Tastatur lernen:
@@ -39,6 +43,7 @@ Die Bilder und die Texte für „Verwechslungen üben“ werden nur im Browser a
 | 1 | Gewusst |
 | 2 | Nicht gewusst |
 | M | Karte merken (auf der Rückseite) |
+| ← → | In einer Merkgruppe blättern |
 
 Mit der Zurück-Funktion des Browsers oder des Handys kommst du jederzeit zur Startseite. Du machst danach an derselben Stelle weiter.
 

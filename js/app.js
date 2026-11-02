@@ -1,6 +1,6 @@
 import {
-  abgleichen, anzahlJeFach, bewerten, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, merkBewerten,
-  merkKarteEntfernen, merkKarteHinzufuegen, merkRundeStarten, merkgruppeAnlegen, merkgruppeLoeschen, migrieren,
+  abgleichen, anzahlJeFach, bewerten, fischeSuchen, gruppeAnwenden, gruppeSetzen, kurzname, lokalerTag, merkBewerten,
+  merkBlaettern, merkKarteEntfernen, merkKarteHinzufuegen, merkRundeStarten, merkgruppeAnlegen, merkgruppeLoeschen, migrieren,
   mindestmassText, neuerZustand, offeneKarten, symbole, systematik, tagSicherstellen, vergleichBewerten, vergleichStarten, zustandPruefen,
 } from './logik.js';
 import {
@@ -9,7 +9,8 @@ import {
 } from './speicher.js';
 import { zipLesen } from './zip.js';
 
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
+const WISCH_MINDESTWEG = 50;
 const $ = (id) => document.getElementById(id);
 
 let fische = [];
@@ -25,6 +26,11 @@ let paarAktuell = null;
 let vergleichUrls = [];
 let merkGruppeId = null;
 let merkZumLoeschen = null;
+let wischStart = null;
+let suchKarteId = null;
+let sucheVorher = null;
+let sucheFrisch = false;
+let suchScroll = 0;
 
 const heute = () => lokalerTag(new Date());
 
@@ -81,6 +87,7 @@ async function tagPruefen() {
 
 function ansichtZeigen(name) {
   for (const a of document.querySelectorAll('[data-ansicht]')) a.hidden = a.dataset.ansicht !== name;
+  $('suche-oeffnen').hidden = ['einstellungen', 'fehler', 'suche'].includes(name);
   window.scrollTo(0, 0);
 }
 
@@ -153,11 +160,22 @@ async function bildZeigen(id) {
 
 const merkgruppe = (id) => zustand.merkgruppen.find((g) => g.id === id);
 
-// Die Lernkarte dient dem Karteikasten und den Merkgruppen.
-const aktuelleKarte = () => (merkGruppeId ? merkgruppe(merkGruppeId)?.runde[0] : zustand.warteschlange[0]);
+// Die Lernkarte dient dem Karteikasten, den Merkgruppen und der Suche.
+function aktuelleKarte() {
+  if (suchKarteId) return suchKarteId;
+  return merkGruppeId ? merkgruppe(merkGruppeId)?.runde[0] : zustand.warteschlange[0];
+}
 
-async function karteZeigen() {
-  if (!merkGruppeId && await tagPruefen()) {
+function merkInfoZeigen() {
+  const offene = merkGruppeId ? merkgruppe(merkGruppeId).runde.length : 0;
+  $('merk-info').hidden = offene === 0;
+  $('merk-info-zahl').textContent = offene === 1 ? '1 Karte offen' : `${offene} Karten offen`;
+  $('merk-info-blaettern').hidden = offene < 2;
+  $('ansicht-karte').classList.toggle('kann-wischen', offene >= 2);
+}
+
+async function karteZeigen(offen = false) {
+  if (!merkGruppeId && !suchKarteId && await tagPruefen()) {
     location.hash = '';
     return;
   }
@@ -172,6 +190,8 @@ async function karteZeigen() {
     }
     return;
   }
+  // Das Bild wechselt zusammen mit dem Text, damit beim Blättern nichts aufblitzt.
+  await bildZeigen(id);
   aufgedeckt = false;
   // Die Lösung kommt erst beim Aufdecken in die Seite.
   $('karte-loesung').hidden = true;
@@ -188,10 +208,12 @@ async function karteZeigen() {
   $('karte-hinweis-zeile').hidden = true;
   $('bewerten').hidden = true;
   $('aufdecken').hidden = false;
+  $('suche-zurueck').hidden = !suchKarteId;
   $('karte-bild').alt = 'Bild des gesuchten Tieres';
   document.querySelector('.karte').classList.remove('ist-aufgedeckt');
-  await bildZeigen(id);
+  merkInfoZeigen();
   ansichtZeigen('karte');
+  if (offen) aufdecken();
 }
 
 function aufdecken() {
@@ -214,14 +236,14 @@ function aufdecken() {
   $('karte-bild').alt = `Bild: ${fisch.name}`;
   $('karte-loesung').hidden = false;
   $('aufdecken').hidden = true;
-  $('bewerten').hidden = false;
+  $('bewerten').hidden = Boolean(suchKarteId);
   merkenKnopfAktualisieren();
   document.querySelector('.karte').classList.add('ist-aufgedeckt');
   $('karte-loesung').scrollTop = 0;
 }
 
 async function bewertungAbgeben(gewusst) {
-  if (!aufgedeckt || beschaeftigt) return;
+  if (!aufgedeckt || beschaeftigt || suchKarteId) return;
   beschaeftigt = true;
   try {
     if (merkGruppeId) {
@@ -241,6 +263,48 @@ async function bewertungAbgeben(gewusst) {
 }
 
 /* Merkgruppen */
+
+// Der aufgedeckte oder verdeckte Zustand bleibt beim Blättern erhalten.
+async function blaettern(richtung) {
+  if (!merkGruppeId || beschaeftigt || $('ansicht-karte').hidden || document.querySelector('dialog[open]')) return;
+  if (merkgruppe(merkGruppeId).runde.length < 2) return;
+  beschaeftigt = true;
+  try {
+    zustand = merkBlaettern(zustand, merkGruppeId, richtung);
+    await speichern();
+    await karteZeigen(aufgedeckt);
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelector('.karte-bildflaeche').animate(
+        [{ transform: `translateX(${richtung * 40}px)`, opacity: 0.4 }, { transform: 'none', opacity: 1 }],
+        { duration: 160, easing: 'ease-out' },
+      );
+    }
+  } finally {
+    beschaeftigt = false;
+  }
+}
+
+function wischenEinrichten() {
+  const flaeche = $('ansicht-karte');
+  flaeche.addEventListener('pointerdown', (e) => {
+    // Ein zweiter Finger bedeutet Zoomen. Am Computer gibt es die Pfeiltasten.
+    wischStart = e.isPrimary && e.pointerType !== 'mouse' ? { x: e.clientX, y: e.clientY } : null;
+  });
+  flaeche.addEventListener('pointercancel', () => { wischStart = null; });
+  // Ohne das verwirft Chrome nach einem schnellen Wisch kurz das nächste Tippen.
+  flaeche.addEventListener('touchmove', (e) => {
+    if (!wischStart || !e.cancelable || !flaeche.classList.contains('kann-wischen')) return;
+    const finger = e.touches[0];
+    if (Math.abs(finger.clientX - wischStart.x) > Math.abs(finger.clientY - wischStart.y)) e.preventDefault();
+  }, { passive: false });
+  flaeche.addEventListener('pointerup', (e) => {
+    if (!wischStart) return;
+    const weg = e.clientX - wischStart.x;
+    const hoehe = e.clientY - wischStart.y;
+    wischStart = null;
+    if (Math.abs(weg) >= WISCH_MINDESTWEG && Math.abs(weg) > 2 * Math.abs(hoehe)) blaettern(weg < 0 ? 1 : -1);
+  });
+}
 
 function merkenKnopfAktualisieren() {
   const id = aktuelleKarte();
@@ -364,6 +428,69 @@ function merkgruppenZeigen(offeneGruppe = null) {
   ansichtZeigen('merkgruppen');
 }
 
+/* Suche */
+
+function sucheOeffnen() {
+  if (suchKarteId) {
+    sucheZurListe();
+    return;
+  }
+  sucheVorher = { hash: location.hash, aufgedeckt };
+  sucheFrisch = true;
+  suchScroll = 0;
+  $('such-eingabe').value = '';
+  location.hash = 'suche';
+}
+
+// Ohne vorherige Seite (etwa nach dem Neuladen) gibt es keinen Schritt zurück.
+function sucheZurListe() {
+  if (sucheVorher) history.back();
+  else location.hash = 'suche';
+}
+
+function sucheVerlassen() {
+  if (sucheVorher) history.back();
+  else location.hash = '';
+}
+
+function sucheKarteOeffnen(id) {
+  suchScroll = window.scrollY;
+  location.hash = `suche-${id}`;
+}
+
+function trefferZeigen() {
+  const treffer = fischeSuchen(fische, $('such-eingabe').value);
+  $('such-liste').replaceChildren(...treffer.map((fisch) => {
+    const zeile = document.createElement('li');
+    const knopf = document.createElement('button');
+    knopf.type = 'button';
+    knopf.className = 'knopf leise such-treffer';
+    knopf.textContent = fisch.name;
+    knopf.addEventListener('click', () => sucheKarteOeffnen(fisch.id));
+    zeile.append(knopf);
+    return zeile;
+  }));
+  $('such-info').textContent = treffer.length === 0
+    ? 'Keine Karte gefunden.'
+    : `${treffer.length} ${treffer.length === 1 ? 'Karte' : 'Karten'}`;
+}
+
+function sucheZeigen() {
+  trefferZeigen();
+  ansichtZeigen('suche');
+  window.scrollTo(0, suchScroll);
+  if (sucheFrisch) $('such-eingabe').focus();
+  sucheFrisch = false;
+}
+
+function sucheEnter(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const treffer = fischeSuchen(fische, $('such-eingabe').value);
+  if (treffer.length === 1) sucheKarteOeffnen(treffer[0].id);
+  else $('such-eingabe').blur();
+}
+
 /* Verwechslungen üben */
 
 function vergleichFreigeben() {
@@ -387,7 +514,7 @@ async function vergleichBild(schluessel, alt) {
   return bild;
 }
 
-async function vergleichZeigen() {
+async function vergleichZeigen(offen = false) {
   const paar = paare.find((p) => p.id === zustand.vergleich[0]);
   vergleichFreigeben();
   aufgedeckt = false;
@@ -409,6 +536,7 @@ async function vergleichZeigen() {
   $('vergleich-aufdecken').hidden = false;
   $('vergleich-bewerten').hidden = true;
   ansichtZeigen('vergleich');
+  if (offen) await vergleichAufdecken();
 }
 
 async function vergleichAufdecken() {
@@ -662,17 +790,31 @@ async function route() {
   const ziel = location.hash.slice(1);
   if (ziel !== 'vergleich') vergleichFreigeben();
   merkGruppeId = null;
-  if (ziel.startsWith('merkgruppe-')) {
+  suchKarteId = null;
+  const inSuche = ziel === 'suche' || ziel.startsWith('suche-');
+  // Zurück aus der Suche bleibt eine aufgedeckte Karte aufgedeckt.
+  const offen = !inSuche && sucheVorher?.hash === location.hash && sucheVorher.aufgedeckt;
+  if (!inSuche) sucheVorher = null;
+  if (ziel === 'suche') sucheZeigen();
+  else if (ziel.startsWith('suche-')) {
+    const id = ziel.slice('suche-'.length);
+    if (fischNachId.has(id)) {
+      suchKarteId = id;
+      await karteZeigen(true);
+    } else {
+      location.hash = 'suche';
+    }
+  } else if (ziel.startsWith('merkgruppe-')) {
     const id = ziel.slice('merkgruppe-'.length);
     if (merkgruppe(id)) {
       merkGruppeId = id;
-      await karteZeigen();
+      await karteZeigen(offen);
     } else {
       location.hash = 'merkgruppen';
     }
   } else if (ziel === 'merkgruppen') merkgruppenZeigen();
-  else if (ziel === 'lernen') await karteZeigen();
-  else if (ziel === 'vergleich') await vergleichZeigen();
+  else if (ziel === 'lernen') await karteZeigen(offen);
+  else if (ziel === 'vergleich') await vergleichZeigen(offen);
   else if (ziel === 'einstellungen') await einstellungenZeigen();
   else {
     bildFreigeben();
@@ -694,6 +836,9 @@ function tastatur(e) {
   } else if (karte && aufgedeckt && e.key.toLowerCase() === 'm') {
     e.preventDefault();
     $('merken').click();
+  } else if (karte && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    e.preventDefault();
+    blaettern(e.key === 'ArrowRight' ? 1 : -1);
   } else if (aufgedeckt && (e.key === '1' || e.code === 'Numpad1')) {
     e.preventDefault();
     bewerte(true);
@@ -721,7 +866,14 @@ function bedienungEinrichten() {
   $('merk-zur-start').addEventListener('click', () => { location.hash = ''; });
   $('merk-nochmal').addEventListener('click', () => merkUeben(merkGruppeId));
   $('merk-zur-liste').addEventListener('click', () => { location.hash = 'merkgruppen'; });
+  $('suche-oeffnen').addEventListener('click', sucheOeffnen);
+  $('suche-verlassen').addEventListener('click', sucheVerlassen);
+  $('suche-zurueck').addEventListener('click', sucheZurListe);
+  $('such-eingabe').addEventListener('input', trefferZeigen);
+  $('such-eingabe').addEventListener('keydown', sucheEnter);
+  wischenEinrichten();
   $('merken').addEventListener('click', () => {
+    if (beschaeftigt) return;
     merkDialogFuellen();
     $('merk-dialog').showModal();
   });

@@ -2,7 +2,7 @@ import {
   tagesmenge, istFaellig, differenzTage, lokalerTag, neuerZustand, abgleichen, tagesplan,
   tagSicherstellen, bewerten, anzahlJeFach, mischen, zustandPruefen, migrieren, gruppeAnwenden,
   gruppeSetzen, offeneKarten, vergleichStarten, vergleichBewerten, kurzname, mindestmassText, symbole, systematik, merkgruppeAnlegen, merkKarteHinzufuegen,
-  merkKarteEntfernen, merkgruppeLoeschen, merkRundeStarten, merkBewerten,
+  merkKarteEntfernen, merkgruppeLoeschen, merkRundeStarten, merkBewerten, merkBlaettern, fischeSuchen,
 } from '../js/logik.js';
 
 const tests = [];
@@ -571,6 +571,72 @@ test('Import mit ungültiger Gruppe oder Reserve wird abgelehnt', () => {
   const basis = { karten: { a: { fach: 1, zuletzt: null } }, tag: null, warteschlange: [] };
   wirft(() => zustandPruefen({ ...basis, gruppe: 0 }), 'Gruppe');
   wirft(() => zustandPruefen({ ...basis, reserve: ['x'] }), 'Reserve');
+});
+
+const mitRunde = (runde) => ({ merkgruppen: [{ id: 'g1', name: 'G', karten: [...runde], runde }] });
+test('Merkgruppe: Blättern vor und zurück ist umkehrbar und läuft im Kreis', () => {
+  let z = mitRunde(['a', 'b', 'c']);
+  z = merkBlaettern(z, 'g1', 1);
+  gleich(z.merkgruppen[0].runde, ['b', 'c', 'a']);
+  z = merkBlaettern(z, 'g1', -1);
+  gleich(z.merkgruppen[0].runde, ['a', 'b', 'c']);
+  z = merkBlaettern(z, 'g1', -1);
+  gleich(z.merkgruppen[0].runde[0], 'c');
+});
+test('Merkgruppe: Blättern ändert weder Kartenliste noch Fächer', () => {
+  const z = { ...mitRunde(['a', 'b']), karten: { a: { fach: 3, zuletzt: null } }, warteschlange: ['a'] };
+  const n = merkBlaettern(z, 'g1', 1);
+  gleich(n.karten, z.karten);
+  gleich(n.warteschlange, z.warteschlange);
+  gleich(n.merkgruppen[0].karten, ['a', 'b']);
+});
+test('Merkgruppe: Mit einer offenen Karte bleibt beim Blättern alles gleich', () => {
+  gleich(merkBlaettern(mitRunde(['a']), 'g1', 1).merkgruppen[0].runde, ['a']);
+  gleich(merkBlaettern(mitRunde([]), 'g1', -1).merkgruppen[0].runde, []);
+});
+test('Merkgruppe: Bewerten trifft nach dem Blättern die sichtbare Karte', () => {
+  let z = merkBlaettern(mitRunde(['a', 'b', 'c']), 'g1', 1);
+  z = merkBewerten(z, 'g1', 'b', true);
+  gleich(z.merkgruppen[0].runde, ['c', 'a']);
+});
+
+const suchFische = ['Äsche', 'Aal | Europäischer Aal | Flussaal', 'Europäischer Wels | Waller', 'Zwergwels | Amerikanischer Wels',
+  'Steinbeißer | Dorngrundel', 'Große Maräne', 'Barbe'].map((name) => ({ id: name, name }));
+const suchNamen = (text) => fischeSuchen(suchFische, text).map((f) => kurzname(f.name));
+test('Suche: Teil des Namens genügt, ohne Rücksicht auf Großschreibung', () => {
+  gleich(suchNamen('BARB'), ['Barbe']);
+  gleich(suchNamen('arbe'), ['Barbe']);
+});
+test('Suche: Alle Namen einer Karte zählen', () => {
+  gleich(suchNamen('waller'), ['Europäischer Wels']);
+  gleich(suchNamen('flussaal'), ['Aal']);
+});
+test('Suche: Umlaute und ß in beiden Schreibweisen', () => {
+  gleich(suchNamen('Äsche'), ['Äsche']);
+  gleich(suchNamen('aesche'), ['Äsche']);
+  gleich(suchNamen('asche'), ['Äsche']);
+  gleich(suchNamen('steinbeisser'), ['Steinbeißer']);
+  gleich(suchNamen('Marane'), ['Große Maräne']);
+  gleich(suchNamen('maraene'), ['Große Maräne']);
+});
+test('Suche: Treffer am Wortanfang stehen vor Treffern mittendrin', () => {
+  gleich(suchNamen('wels'), ['Europäischer Wels', 'Zwergwels']);
+  gleich(suchNamen('aal'), ['Aal']);
+  gleich(fischeSuchen([{ id: 'z', name: 'Zwergwels' }, { id: 'w', name: 'Wels' }], 'wels').map((f) => f.id), ['w', 'z']);
+});
+test('Suche: Leerzeichen am Rand stören nicht, doppelte auch nicht', () => {
+  gleich(suchNamen('  große   maräne '), ['Große Maräne']);
+});
+test('Suche: Ohne Text alle Karten nach dem Alphabet, ohne Treffer leer', () => {
+  gleich(suchNamen('').length, suchFische.length);
+  gleich(suchNamen('')[0], 'Aal');
+  gleich(suchNamen('   ').length, suchFische.length);
+  gleich(suchNamen('xyz'), []);
+});
+test('Suche: Die übergebene Liste bleibt unverändert', () => {
+  const vorher = suchFische.map((f) => f.id);
+  fischeSuchen(suchFische, '');
+  gleich(suchFische.map((f) => f.id), vorher);
 });
 
 const ergebnisse = tests.map(([name, fn]) => {

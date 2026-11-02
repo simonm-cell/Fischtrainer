@@ -17,7 +17,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-html, body { height: 100%; }
+html, body { height: 100%; overscroll-behavior-x: none; }
 
 body {
   margin: 0;
@@ -124,6 +124,17 @@ kbd { display: none; }
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
 }
+/* Hält oben Platz für den Suchknopf frei. */
+.karte-kopf {
+  flex: none;
+  min-height: 58px;
+  padding: 0 72px 0 16px;
+  display: flex;
+  align-items: center;
+}
+.karte-kopf p { margin: 0; }
+/* Waagerechtes Wischen gehört der App, Scrollen und Zoomen bleiben beim Browser. */
+.kann-wischen, .kann-wischen .karte-loesung { touch-action: pan-y pinch-zoom; }
 .karte-bildflaeche {
   flex: 1 1 0;
   min-height: 0;
@@ -182,6 +193,31 @@ kbd { display: none; }
 .bewerten { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bewerten .knopf { min-height: 72px; }
 #aufdecken { min-height: 72px; }
+
+.knopf.suche-knopf {
+  position: absolute;
+  z-index: 1;
+  top: max(6px, env(safe-area-inset-top));
+  right: 16px;
+  width: 48px;
+  min-height: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.suche-knopf svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.such-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.knopf.such-treffer { text-align: left; }
+input[type="search"]::-webkit-search-cancel-button { display: none; }
 
 .zahl {
   display: block;
@@ -283,8 +319,9 @@ dialog .knopfreihe { margin: 16px 0 0; }
 /* Am Computer stehen Bild und Lösung nebeneinander. */
 @media (min-width: 800px) and (min-height: 500px) {
   .karte { padding: 16px; }
-  .ist-aufgedeckt.karte { display: grid; grid-template-columns: 3fr 2fr; grid-template-rows: 1fr auto; gap: 8px 20px; }
-  .ist-aufgedeckt .karte-bildflaeche { grid-column: 1; grid-row: 1; min-height: 0; padding: 12px; }
-  .ist-aufgedeckt .karte-loesung { grid-column: 2; grid-row: 1; align-self: center; max-height: 100%; }
-  .ist-aufgedeckt .karte-knoepfe { grid-column: 1 / -1; grid-row: 2; }
+  .ist-aufgedeckt.karte { display: grid; grid-template-columns: 3fr 2fr; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px 20px; }
+  .ist-aufgedeckt .karte-kopf { grid-column: 1 / -1; grid-row: 1; }
+  .ist-aufgedeckt .karte-bildflaeche { grid-column: 1; grid-row: 2; min-height: 0; padding: 12px; }
+  .ist-aufgedeckt .karte-loesung { grid-column: 2; grid-row: 2; align-self: center; max-height: 100%; }
+  .ist-aufgedeckt .karte-knoepfe { grid-column: 1 / -1; grid-row: 3; }
 }

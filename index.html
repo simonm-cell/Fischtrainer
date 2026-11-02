@@ -18,9 +18,14 @@
     <symbol id="symbol-mass" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8.5" rx="1.4"/><path d="M6 8v3.2M10 8v4.6M14 8v3.2M18 8v4.6"/></symbol>
     <symbol id="symbol-kalender" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01" stroke-width="2.4"/></symbol>
     <symbol id="symbol-nicht-zuruecksetzen" viewBox="0 0 24 24"><g transform="rotate(-48 12 9)" fill="currentColor" stroke-width="1"><path d="M1.5 9C5.2 3.8 11.2 3.8 15.2 9 11.2 14.2 5.2 14.2 1.5 9Z"/><path d="M14.6 9l6-4.3v8.6Z"/><circle cx="5.6" cy="7.8" r="1" fill="var(--grund)" stroke="none"/></g><path d="M1.8 21.6c2-1.5 3.4-1.5 5.1 0s3.2 1.5 5.1 0 3.4-1.5 5.1 0 3.2 1.5 5.1 0"/><path d="M3.5 2.5 19 18" stroke="var(--grund)" stroke-width="3.8"/><path d="M3.5 2.5 19 18" stroke="#b3261e" stroke-width="2.3"/></symbol>
+    <symbol id="symbol-suche" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21"/></symbol>
   </svg>
 
   <noscript>Der Fischtrainer braucht JavaScript.</noscript>
+
+  <button type="button" class="knopf leise suche-knopf" id="suche-oeffnen" aria-label="Karte suchen" title="Karte suchen" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#symbol-suche"/></svg>
+  </button>
 
   <main class="seite" id="ansicht-start" data-ansicht="start" hidden>
     <h1>Fischtrainer</h1>
@@ -59,6 +64,9 @@
   </main>
 
   <main class="karte" id="ansicht-karte" data-ansicht="karte" hidden>
+    <div class="karte-kopf">
+      <p class="klein" id="merk-info" hidden><span id="merk-info-zahl"></span><span id="merk-info-blaettern"> · zum Blättern wischen<kbd>←</kbd><kbd>→</kbd></span></p>
+    </div>
     <div class="karte-bildflaeche">
       <img id="karte-bild" alt="" hidden>
       <div id="karte-platzhalter" class="platzhalter" hidden>Kein Bild vorhanden</div>
@@ -95,10 +103,23 @@
         <button type="button" class="knopf gewusst" id="gewusst">Gewusst<kbd>1</kbd></button>
         <button type="button" class="knopf nicht-gewusst" id="nicht-gewusst">Nicht gewusst<kbd>2</kbd></button>
       </div>
+      <button type="button" class="knopf leise" id="suche-zurueck" hidden>Zurück zur Suche</button>
     </div>
   </main>
 
+  <main class="seite" id="ansicht-suche" data-ansicht="suche" hidden>
+    <button type="button" class="knopf leise zurueck" id="suche-verlassen">Zurück</button>
+    <h1>Karte suchen</h1>
+    <div>
+      <label for="such-eingabe">Name oder Teil des Namens</label>
+      <input type="search" id="such-eingabe" class="text-eingabe" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <p class="klein" id="such-info" role="status"></p>
+    </div>
+    <ul class="such-liste" id="such-liste"></ul>
+  </main>
+
   <main class="karte" id="ansicht-vergleich" data-ansicht="vergleich" hidden>
+    <div class="karte-kopf"></div>
     <div class="vergleich-inhalt" id="vergleich-inhalt"></div>
     <div class="karte-knoepfe">
       <button type="button" class="knopf haupt" id="vergleich-aufdecken">Aufdecken<kbd>Leertaste</kbd></button>
@@ -185,7 +206,7 @@
     <button type="button" class="knopf leise zurueck" id="merk-zur-start">Zurück</button>
     <h1>Merkgruppen</h1>
     <p class="klein">Üben ändert weder Fächer noch Tagesplan.</p>
-    <p id="merk-leer" hidden>Noch keine Merkgruppe vorhanden. Decke beim Lernen eine Karte auf und tippe auf „Merken“.</p>
+    <p id="merk-leer" hidden>Noch keine Merkgruppe vorhanden. Decke beim Lernen eine Karte auf oder suche sie, und tippe auf „Merken“.</p>
     <div class="merk-liste" id="merk-liste"></div>
   </main>
 
